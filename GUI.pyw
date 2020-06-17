@@ -43,6 +43,7 @@ class GUI():
             label = "Submit",
             size = (60, 25),
             pos = (690, 165))
+        self.__frame.Bind(wx.EVT_BUTTON, self.test, self.__submit_button)
 
         self.__skip_button = wx.Button(self.__user_input_panel,
             label = "Skip",
@@ -85,5 +86,9 @@ class GUI():
             size = (145, 25),
             pos = (760, 130))
 
-
         self.__frame.Show()
+    
+    def test(self, event):
+        print(event.GetEventObject())
+        if event.GetEventObject() == self.__submit_button:
+            print("Submit button pressed")
