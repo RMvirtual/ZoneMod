@@ -8,16 +8,29 @@ class Postcode():
         self.__zone = None
 
     def get_area_code(self):
+        """ Returns the area code (ie PO42 would return PO). """
+        
         return self.__area_code
     
     def get_district_number(self):
+        """ Returns the district number (ie PO42 would return 42). """
+        
         return self.__district_number
 
     def get_zone(self):
+        """ Returns the name of the zone that the postcode belongs
+        to. """
+
         return self.__zone
     
     def get_full_postcode(self):
+        """ Returns the full postcode representation (ie PO42 would
+        return PO42 in full). """
+
         return self.__area_code.strip() + self.__district_number.strip()
 
     def amend_zone(self, new_zone):
+        """ Amends the zone of this postcode to a string representation
+        of a zone. """
+        
         self.__zone = new_zone

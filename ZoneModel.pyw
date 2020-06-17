@@ -6,6 +6,7 @@ class ZoneModel():
     
     def __init__(self, name):
         """ Constructor method. """
+
         self.__name = name.upper()
         self.__postcodes = []
         self.initialise_postcodes()
@@ -20,7 +21,8 @@ class ZoneModel():
 
             for row in csv_reader:
                 postcode = ", ".join(row)
-                area_code, district_number = self.split_apart_postcode(postcode)
+                area_code, district_number = self.split_apart_postcode(
+                    postcode)
 
                 new_postcode = Postcode(area_code, district_number)
                 self.__postcodes.append(new_postcode)
@@ -42,6 +44,7 @@ class ZoneModel():
 
     def get_name(self):
         """ Returns the name of the zone model. """
+
         return self.__name
 
     def get_postcode_by_index(self, index):
@@ -66,6 +69,9 @@ class ZoneModel():
         return None
     
     def get_all_postcodes(self):
+        """ Returns the full list of postcodes contained in this
+        zone model. """
+
         return self.__postcodes
     
     def save_zone_model(self):
@@ -77,7 +83,7 @@ class ZoneModel():
             postcodes = self.get_all_postcodes()
 
             for postcode in postcodes:
-                # csvwriter needs a list object to be work so creating
+                # csvwriter needs a list object to work so creating
                 # a list even though only one row.
                 row = [postcode.get_full_postcode()]
                 
