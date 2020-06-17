@@ -43,17 +43,22 @@ class GUI():
             label = "Submit",
             size = (60, 25),
             pos = (690, 165))
-        self.__frame.Bind(wx.EVT_BUTTON, self.test, self.__submit_button)
+        self.__frame.Bind(wx.EVT_BUTTON, self.button_click,
+            self.__submit_button)
 
         self.__skip_button = wx.Button(self.__user_input_panel,
             label = "Skip",
             size = (60, 25),
             pos = (625, 165))
-        
+        self.__frame.Bind(wx.EVT_BUTTON, self.button_click,
+            self.__skip_button)
+
         self.__exit_button = wx.Button(self.__user_input_panel,
             label = "Exit",
             size = (60, 25),
             pos = (900, 165))
+        self.__frame.Bind(wx.EVT_BUTTON, self.button_click,
+            self.__exit_button)
         
         self.__zone_label = wx.StaticText(self.__user_input_panel,
             label = "Zone Name:",
@@ -70,25 +75,50 @@ class GUI():
             label = "Create Zone Model",
             size = (145, 25),
             pos = (760, 40))
+        self.__frame.Bind(wx.EVT_BUTTON, self.button_click,
+            self.__create_zone_model_button)
         
         self.__amend_zone_model_button = wx.Button(self.__user_input_panel,
             label = "Amend Zone Model",
             size = (145, 25),
             pos = (760, 70))
+        self.__frame.Bind(wx.EVT_BUTTON, self.button_click,
+            self.__amend_zone_model_button)
 
         self.__export_csv_button = wx.Button(self.__user_input_panel,
             label = "Export Zone Model CSV",
             size = (145, 25),
             pos = (760, 100))
+        self.__frame.Bind(wx.EVT_BUTTON, self.button_click,
+            self.__export_csv_button)
 
         self.__import_csv_button = wx.Button(self.__user_input_panel,
             label = "Import Zone Model CSV",
             size = (145, 25),
             pos = (760, 130))
+        self.__frame.Bind(wx.EVT_BUTTON, self.button_click,
+            self.__import_csv_button)
 
         self.__frame.Show()
     
-    def test(self, event):
-        print(event.GetEventObject())
+    def button_click(self, event):
         if event.GetEventObject() == self.__submit_button:
             print("Submit button pressed")
+        
+        elif event.GetEventObject() == self.__skip_button:
+            print("Skip button pressed")
+
+        elif event.GetEventObject() == self.__exit_button:
+            print("Exit button pressed")
+
+        elif event.GetEventObject() == self.__create_zone_model_button:
+            print("Create Zone Model button pressed")
+
+        elif event.GetEventObject() == self.__amend_zone_model_button:
+            print("Amend Zone Model button pressed")
+
+        elif event.GetEventObject() == self.__export_csv_button:
+            print("Export CSV button pressed")
+
+        elif event.GetEventObject() == self.__import_csv_button:
+            print("Import CSV pressed")
