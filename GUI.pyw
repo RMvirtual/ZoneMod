@@ -1,19 +1,18 @@
 import wx
+from ZoneModel import ZoneModel
 
 class GUI():
     """ GUI for running the main application. """
 
     def __init__(self):
         self.__app = wx.App(False)
+        self.__mode = None
+
         self.__create_widgets()
         self.__app.MainLoop()
     
     def __create_widgets(self):
         """ Creates the widgets required for the application. """
-        strings = ""
-        
-        for number in range(50):
-            strings += ("Test " + str(number) + "\n")
 
         self.__frame = wx.Frame(None, size = (1000, 560),
             title = "zoneMod")
@@ -25,8 +24,7 @@ class GUI():
         
         self.__text_console_output_box = wx.TextCtrl(self.__text_console_panel,
             size = (965, 300),
-            style = wx.TE_MULTILINE | wx.TE_READONLY | wx.BORDER_SIMPLE,
-            value= strings)
+            style = wx.TE_MULTILINE | wx.TE_READONLY | wx.BORDER_SIMPLE)
 
         self.__user_input_panel = wx.Panel(self.__frame,
             size = (965, 195),
@@ -112,7 +110,9 @@ class GUI():
             print("Exit button pressed")
 
         elif event.GetEventObject() == self.__create_zone_model_button:
-            print("Create Zone Model button pressed")
+            print("Create Zone Model button pressed.")
+            if self.__mode == None:
+                self.create_zone_model()
 
         elif event.GetEventObject() == self.__amend_zone_model_button:
             print("Amend Zone Model button pressed")
@@ -121,4 +121,43 @@ class GUI():
             print("Export CSV button pressed")
 
         elif event.GetEventObject() == self.__import_csv_button:
-            print("Import CSV pressed")
+            print("Import CSV button pressed")
+    
+    def create_zone_model(self):
+        zm_name_input_box = wx.TextEntryDialog(self.__frame,
+            "Please enter the name of the zone model you want to create.")
+
+        if zm_name_input_box.ShowModal() == wx.ID_OK:
+            zm_name = zm_name_input_box.GetValue()
+            zoneModel = ZoneModel(zm_name)
+            zoneModel.save_zone_model()
+        
+        else:
+            print("Text box cancelled")
+            self.clear_console_output()
+        
+        zm_name_input_box.Destroy()
+    
+    def write_console_output(self, text):
+        self.__text_console_output_box.write(text.strip() + "\n")
+    
+    def clear_console_output(self):
+        console_box = self.__text_console_output_box
+        print(console_box.PositionToXY(4))
+        total_lines = console_box.GetNumberOfLines()
+
+        print("Total Lines: ", total_lines)
+        end_position = 0
+
+        for line in range(total_lines):
+            print("Line No: ", line)
+
+            # appears to need 2 characters for a line break in terms
+            # of position
+            line_length = console_box.GetLineLength(line) + 2
+
+            print("Line Length: ", line_length)
+            end_position += line_length
+        
+        print(end_position)
+        console_box.Remove(0, end_position)
