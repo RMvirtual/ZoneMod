@@ -1,4 +1,4 @@
-class Postcode(object):
+class Postcode():
     """ A UK postcode that also allows a zone to be tied to it. """
     
     def __init__(self, area_code, district_number):
@@ -12,9 +12,12 @@ class Postcode(object):
     
     def get_district_number(self):
         return self.__district_number
-    
+
     def get_zone(self):
         return self.__zone
     
+    def get_full_postcode(self):
+        return self.__area_code.strip() + self.__district_number.strip()
+
     def amend_zone(self, new_zone):
         self.__zone = new_zone

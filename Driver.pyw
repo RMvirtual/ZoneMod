@@ -11,6 +11,10 @@ def main():
     postcode = zoneModel.get_postcode_by_index(52)
 
     print(postcode.get_area_code())
+    print(zoneModel.get_postcode_by_string("WN8"))
 
+    
+
+    zoneModel.save_zone_model()
 
 main()
