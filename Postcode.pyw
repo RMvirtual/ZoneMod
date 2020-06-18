@@ -3,7 +3,7 @@ class Postcode():
     
     def __init__(self, area_code, district_number):
         """ Constructor method. """
-        self.__area_code = area_code
+        self.__area_code = area_code.upper()
         self.__district_number = district_number
         self.__zone = None
 
