@@ -5,8 +5,12 @@ class GUI():
     """ GUI for running the main application. """
 
     def __init__(self):
+        """ Constructor method. """
+
         self.__app = wx.App(False)
         self.__mode = None
+        self.__current_zone_model = None
+        self.__tariff_type = "UK Only"
 
         self.__create_widgets()
         self.__app.MainLoop()
@@ -121,7 +125,7 @@ class GUI():
             self.__user_input_panel,
             pos = (832 , 25),
             size = (100, 25),
-            value = "UK Only",
+            value = self.get_tariff_type(),
             choices = ["UK Only", "SCO Only", "UK and SCO"],
             style = wx.CB_DROPDOWN | wx.CB_READONLY)
         
@@ -171,51 +175,136 @@ class GUI():
         self.__frame.Show()
     
     def button_click(self, event):
+        """ Defines the program's behaviour when the GUI's buttons are
+        pressed. """
+
+        # submit button.
         if event.GetEventObject() == self.__submit_button:
             print("Submit button pressed")
-        
+
+            self.submit()
+
+        # skip button.
         elif event.GetEventObject() == self.__skip_button:
             print("Skip button pressed")
 
+        # exit button.
         elif event.GetEventObject() == self.__exit_button:
             print("Exit button pressed")
-        
+
+        # finished button.
         elif event.GetEventObject() == self.__finished_button:
             print("Finished button pressed")
 
+            self.__current_zone_model.save_zone_model()
+
+        # create zone model button.
         elif event.GetEventObject() == self.__create_zone_model_button:
             print("Create Zone Model button pressed.")
-            if self.__mode == None:
-                self.create_zone_model()
 
+            if self.__mode == None:
+                self.__current_zone_model = self.create_zone_model()
+
+                if self.__current_zone_model:
+                    self.change_mode("create zone model")
+
+        # amend zone model button.
         elif event.GetEventObject() == self.__amend_zone_model_button:
             print("Amend Zone Model button pressed")
 
+        # export zone model csv button.
         elif event.GetEventObject() == self.__export_csv_button:
             print("Export CSV button pressed")
 
+        # import zone model csv button.
         elif event.GetEventObject() == self.__import_csv_button:
             print("Import CSV button pressed")
     
     def tariff_type_change(self, event):
-        print(self.__tariff_type_dropdown_menu.GetValue())
+        """ Changes the tariff type based on the current value of the
+        tariff type dropdown menu. """
+
+        self.__tariff_type = self.__tariff_type_dropdown_menu.GetValue()
+
+    def get_tariff_type(self):
+        """ Returns a string representing the current tariff type
+        setting. """
+        
+        return self.__tariff_type
+
+    def get_mode(self):
+        """ Returns the current mode/operation that the user is
+        expected to complete. """
+
+        return self.__mode
     
+    def change_mode(self, new_mode):
+
+        """ Changes the current mode/operation that the user is
+        expected to complete. Valid options are None, "create zone
+        model". """
+
+        modes = [None, "create zone model"]
+
+        for mode in modes:
+            if new_mode.lower() == mode:
+                self.__mode = new_mode
+                
+                return
+
+    def get_user_input(self):
+        """ Gets the text from the user input box. """
+        
+        return self.__text_console_input_box.GetValue()
+
+    def clear_user_input(self):
+        """ Clears the text from the user input box. """
+
+        self.__text_console_input_box.Remove(0, 2000)
+    
+    def insert_user_input(self, text):
+        """ Inserts text in the user input box (ie amendments that need
+        making). """
+
+        self.__text_console_input_box.ChangeValue(text)
+
+    def get_zone_input(self):
+        """ Gets the text from the zone name input box. """
+        
+        return self.__zone_input_box.GetValue()
+
+    def submit(self):
+        """ Submit data to the zone model to be added/amended. """
+        self.delimit_user_input()
+
+
+    def delimit_user_input(self):
+        user_input_text = "".join(self.get_user_input().strip().split())
+        self.write_console_output("Processing " + user_input_text)
+
+        
+
+
     def create_zone_model(self):
         """ Creates a new zone model and prepares the user for data
-        entry of postcodes and zones against this new model. """ 
+        entry of postcodes and zones against this new model. """
+
+        zone_model = None
+
         zm_name_input_box = wx.TextEntryDialog(self.__frame,
             "Please enter the name of the zone model you want to create.")
 
         if zm_name_input_box.ShowModal() == wx.ID_OK:
             zm_name = zm_name_input_box.GetValue()
-            zoneModel = ZoneModel(zm_name)
-            zoneModel.save_zone_model()
+            zone_model = ZoneModel(zm_name, self.get_tariff_type())
         
         else:
             print("Text box cancelled")
             self.clear_console_output()
         
         zm_name_input_box.Destroy()
+
+        return zone_model
     
     def write_console_output(self, text):
         """ Writes text to the console output screen of the GUI. """

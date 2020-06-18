@@ -4,28 +4,43 @@ from Postcode import Postcode
 class ZoneModel():
     """ Models a collection of postcodes and corresponding zones. """
     
-    def __init__(self, name):
+    def __init__(self, name, tariff_type):
         """ Constructor method. """
 
         self.__name = name.upper()
         self.__postcodes = []
-        self.initialise_postcodes()
+        self.initialise_postcodes(tariff_type)
     
-    def initialise_postcodes(self):
+    def initialise_postcodes(self, tariff_type):
         """ Sets up the postcodes in the zone model so zones can be
         added to them later. Uses base csv files to make setting them
-        up easier. """
+        up easier. Differentiates which postcodes are generated based
+        on tariff type"""
 
-        with open("baseukpostcodes.csv", newline="") as csv_file:
-            csv_reader = csv.reader(csv_file, delimiter = " ")
+        if tariff_type == "UK Only" or tariff_type == "UK and SCO":
+            with open("baseukpostcodes.csv", newline="") as csv_file:
+                csv_reader = csv.reader(csv_file, delimiter = " ")
 
-            for row in csv_reader:
-                postcode = ", ".join(row)
-                area_code, district_number = self.split_apart_postcode(
-                    postcode)
+                for row in csv_reader:
+                    postcode = ", ".join(row)
+                    area_code, district_number = self.split_apart_postcode(
+                        postcode)
 
-                new_postcode = Postcode(area_code, district_number)
-                self.__postcodes.append(new_postcode)
+                    new_postcode = Postcode(area_code, district_number)
+                    self.__postcodes.append(new_postcode)
+        
+        if tariff_type == "SCO Only" or tariff_type == "UK and SCO":
+            with open("basescopostcodes.csv", newline="") as csv_file:
+                csv_reader = csv.reader(csv_file, delimiter = " ")
+
+                for row in csv_reader:
+                    postcode = ", ".join(row)
+                    area_code, district_number = self.split_apart_postcode(
+                        postcode)
+
+                    new_postcode = Postcode(area_code, district_number)
+                    self.__postcodes.append(new_postcode)
+
 
     def split_apart_postcode(self, postcode):
         """ Splits apart a full postcode string into area code and
