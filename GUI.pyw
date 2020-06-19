@@ -12,6 +12,7 @@ class GUI():
         self.__mode = None
         self.__current_zone_model = None
         self.__current_zone_model_postcodes = None
+        self.__master_area_code = None
         self.__tariff_type = "UK Only"
 
         self.__create_widgets()
@@ -256,6 +257,15 @@ class GUI():
                 
                 return
 
+    def get_master_area_code(self):
+        return self.__master_area_code
+    
+    def set_master_area_code(self, new_area_code):
+        self.__master_area_code = new_area_code
+
+    def clear_master_area_code(self):
+        self.__master_area_code = None
+
     def get_user_input(self):
         """Gets the text from the user input box."""
         
@@ -328,17 +338,32 @@ class GUI():
             "0", "00", "0-00", "00-00", "0+", "00++"]
 
         if formatted_input in numerical_only_characters and master_area_code:
-            self.determine_operation_type()
-
+            input_format = self.detect_user_input(
+                master_area_code + original_input)
+            
+            area_code, district_numbers, operation_type \
+                = self.determine_operation_type(
+                    input_format, master_area_code, original_input)
 
         # if the area code is 1 character, but contains an open bracket
         # indicating the start of a subset of postcodes.
         elif formatted_input[0:2] == "x(":
             self.write_console_output(original_input + " is L( style.")
             
+            revised_original_input = re.sub("\(", "", original_input)
             area_code = original_input[0]
             district_numbers = original_input[2:]
             operation_type = "subset"
+
+            input_format = self.detect_user_input_format(
+                area_code + district_numbers)
+            
+            area_code, district_numbers, operation_type \
+                = self.determine_operation_type(
+                    input_format,
+                    revised_original_input)
+
+            self.set_master_area_code(area_code)
         
         # if the area code is 2 characters, but contains an open
         # bracket indicating the start of a subset of postcodes.
