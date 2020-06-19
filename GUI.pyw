@@ -279,7 +279,8 @@ class GUI():
 
         for item in user_input_data:
             formatted_input = self.detect_user_input_format(item)
-            self.determine_input_operation(formatted_input, item)
+            area_code, district_numbers = self.determine_input_operation(
+                formatted_input, item)
 
     def detect_user_input_format(self, user_input):
         """Determines what type of structure the postcode being
@@ -305,52 +306,100 @@ class GUI():
         along with other modes and variables to determine what
         operation should be performed."""
 
+        range_characters = ["x0-0", "x0-00", "x00-0", "x00-00"
+                            "x0-x0", "x0-x00", "x00-x0", "x00-x00",
+                            "xx0-0", "xx0-00", "xx00-0", "xx00-00",
+                            "xx0-xx0", "xx0-xx00", "xx00-xx0", "xx00-xx00"]
+
         # if the area code is 1 character, but contains an open bracket
         # indicating the start of a subset of postcodes.
         if formatted_input[0:2] == "x(":
             self.write_console_output(original_input + " is L( style.")
+            
+            area_code = original_input[0]
+            district_numbers = "subset"
         
         # if the area code is 2 characters, but contains an open
         # bracket indicating the start of a subset of postcodes.
         elif formatted_input[0:3] == "xx(":
             self.write_console_output(original_input + " is LA( style.")
+
+            area_code = original_input[0:2]
+            district_numbers = "subset"
         
+        # if is a postcode range (see range characters list but as
+        # an example L1-L12).
+        elif formatted_input in range_characters:
+            if formatted_input[0:2] == "x0":
+                self.write_console_output(original_input 
+                    + " is L1-range style.")
+                
+                area_code = original_input[0]
+                district_numbers = "range"
+
+            elif formatted_input[0:2] == "xx":
+                self.write_console_output(original_input 
+                    + " is L10-range style.")
+
+                area_code = original_input[0:2]
+                district_numbers = "range"
+
         # if only 1 alphabet character (ie L postcode).
-        elif len(formatted_input) == 1 and formatted_input == "x":
+        elif formatted_input == "x":
             self.write_console_output(original_input + "is L style")
+
+            area_code = original_input
+            district_numbers = "all"
         
         # if is a district specific postcode consisting of 1 alphabet
         # character and 1 numerical (ie L1 postcode).
-        elif len(formatted_input) == 2 and formatted_input == "x0":
+        elif formatted_input == "x0":
             self.write_console_output(original_input + "is L1 style")
+
+            area_code = original_input[0]
+            district_numbers = original_input[1]
 
         # if is non-district specific covering the entire area of
         # a two letter postcode (ie WN postcode).
-        elif len(formatted_input) == 2 and formatted_input == "xx":
+        elif formatted_input == "xx":
             self.write_console_output(original_input + "is WN style")
+            
+            area_code = original_input[0:2]
+            district_numbers = "all"
         
         # if the area code is 1 character and the district number is
         # 2 digits (ie L20 postocode).
-        elif len(formatted_input) == 3 and formatted_input == "x00":
+        elif formatted_input == "x00":
             self.write_console_output(original_input + "is L20 style")
+
+            area_code = original_input[0]
+            district_numbers = original_input[1:3]
         
         # if the area code is 2 characters and the district number
         # is 1 digit (ie WN6 postcode).
-        elif len(formatted_input) == 3 and formatted_input == "xx0":
+        elif formatted_input == "xx0":
             self.write_console_output(original_input + " is WN6 style bruh.")
 
-        # if the area code is 2 characters and the district number is
-        # 2 digits (ie LA20 postcode).
-        elif len(formatted_input) == 4 and formatted_input == "xx00":
-            self.write_console_output(original_input + " is LA20 style bruh")
+            area_code = original_input[0:2]
+            district_numbers = original_input[2]
 
-        # if the area code is 2 characters and the district number
-        # is 1 digit and 1 character (ie EC & WC London postcodes).
-        elif len(formatted_input) == 4 and formatted_input == "xx0x":
-            self.write_console_output(original_input + " is EC2M style bruh")
+        # if the area code is 2 characters and the district number is
+        # 2 digits (ie LA20 postcode) or 1 digit and 1 alphabetic
+        # character (ie London postcodes such as EC2M or WC2H).
+        elif formatted_input == "xx00" or formatted_input == "xx0x":
+            self.write_console_output(original_input + " is LA20/EC2M style "
+            + "bruh")
+
+            area_code = original_input[0:2]
+            district_numbers = original_input[2:4]
 
         else:
             self.write_console_output(original_input + " is not recognised.")
+            
+            area_code = None
+            district_numbers = None
+        
+        return area_code, district_numbers
 
     def delimit_user_input(self):
         user_input_text = "".join(self.get_user_input().replace(".",",").strip().split())
