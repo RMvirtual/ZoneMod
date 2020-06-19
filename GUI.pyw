@@ -3,7 +3,7 @@ import re
 from ZoneModel import ZoneModel
 
 class GUI():
-    """ GUI for running the main application. """
+    """GUI for running the main application."""
 
     def __init__(self):
         """ Constructor method. """
@@ -17,7 +17,7 @@ class GUI():
         self.__app.MainLoop()
     
     def __create_widgets(self):
-        """ Creates the widgets required for the application. """
+        """Creates the widgets required for the application."""
 
         # frame for entire window.
         self.__frame = wx.Frame(
@@ -176,8 +176,8 @@ class GUI():
         self.__frame.Show()
     
     def button_click(self, event):
-        """ Defines the program's behaviour when the GUI's buttons are
-        pressed. """
+        """Defines the program's behaviour when the GUI's buttons are
+        pressed."""
 
         # submit button.
         if event.GetEventObject() == self.__submit_button:
@@ -222,28 +222,27 @@ class GUI():
             print("Import CSV button pressed")
     
     def tariff_type_change(self, event):
-        """ Changes the tariff type based on the current value of the
-        tariff type dropdown menu. """
+        """Changes the tariff type based on the current value of the
+        tariff type dropdown menu."""
 
         self.__tariff_type = self.__tariff_type_dropdown_menu.GetValue()
 
     def get_tariff_type(self):
-        """ Returns a string representing the current tariff type
-        setting. """
+        """Returns a string representing the current tariff type
+        setting."""
         
         return self.__tariff_type
 
     def get_mode(self):
-        """ Returns the current mode/operation that the user is
-        expected to complete. """
+        """Returns the current mode/operation that the user is
+        expected to complete."""
 
         return self.__mode
     
     def change_mode(self, new_mode):
-
-        """ Changes the current mode/operation that the user is
+        """Changes the current mode/operation that the user is
         expected to complete. Valid options are None, "create zone
-        model". """
+        model"."""
 
         modes = [None, "create zone model"]
 
@@ -254,105 +253,104 @@ class GUI():
                 return
 
     def get_user_input(self):
-        """ Gets the text from the user input box. """
+        """Gets the text from the user input box."""
         
         return self.__text_console_input_box.GetValue()
 
     def clear_user_input(self):
-        """ Clears the text from the user input box. """
+        """Clears the text from the user input box."""
 
         self.__text_console_input_box.Remove(0, 2000)
     
     def insert_user_input(self, text):
-        """ Inserts text in the user input box (ie amendments that need
-        making). """
+        """Inserts text in the user input box (ie amendments that need
+        making)."""
 
         self.__text_console_input_box.ChangeValue(text)
 
     def get_zone_input(self):
-        """ Gets the text from the zone name input box. """
+        """Gets the text from the zone name input box."""
         
         return self.__zone_input_box.GetValue()
 
     def submit(self):
-        """ Submit data to the zone model to be added/amended. """
-        postcode_submission_data = self.delimit_user_input()
+        """Submit data to the zone model to be added/amended."""
+        user_input_data = self.delimit_user_input()
 
-        for postcode in postcode_submission_data:
-            self.detect_postcode_format(postcode)
+        for item in user_input_data:
+            formatted_input = self.detect_user_input_format(item)
+            self.determine_input_operation(formatted_input, item)
 
-    def detect_postcode_format(self, postcode):
-        """ Determines what type of structure the postcode being
+    def detect_user_input_format(self, user_input):
+        """Determines what type of structure the postcode being
         analysed is is. Dependent upon how many characters in the
         string and what type those individual characters are. Examples
-        include L, L1, LA1, LA12, EC2M. """
+        include L, L1, LA1, LA12, EC2M.
+
+        Returns a string that contains x for every alphabet character
+        and 0 for every numeric character, as well as any brackets or
+        hyphens that are present indicating a range."""
+
+        # substitute all letters for x's, all numbers for 0, and
+        # maintain hyphens and brackets.
+        input_format = re.sub("[a-zA-Z]", "x", user_input)
+        input_format = re.sub("[0-9]", "0", input_format)
+
+        self.write_console_output("Format is " + input_format)
+
+        return input_format
+
+    def determine_input_operation(self, formatted_input, original_input):
+        """Assesses the state of the formatted user input provided
+        along with other modes and variables to determine what
+        operation should be performed."""
+
+        # if the area code is 1 character, but contains an open bracket
+        # indicating the start of a subset of postcodes.
+        if formatted_input[0:2] == "x(":
+            self.write_console_output(original_input + " is L( style.")
         
-        # if only 1 character (ie L postcode).
-        if len(postcode) == 1:
-            # if is non-district specific covering the entire area of
-            # a single letter postcode (ie L area postcode).
-            if re.match("[a-zA-Z]", postcode[0]) != None:
-                self.write_console_output(postcode + " is one alphabetic "
-                    + "character.")
-
-            else:
-                self.write_console_output(postcode + " is not recognised.")
-
-        # if is 2 characters (ie L1 postcode, WN area postcode).
-        elif len(postcode) == 2:
-            # if is a district specific postcode (ie L1 postcode).
-            if (re.match("[a-zA-Z]", postcode[0]) != None and
-                    re.match("[0-9]", postcode[1]) != None):
-                self.write_console_output(postcode + " is L1 style bruh.")
-
-            # if is non-district specific covering the entire area of
-            # a two letter postcode (ie WN postcode).
-            elif (re.match("[a-zA-Z]", postcode[0]) != None and
-                    re.match("[a-zA-Z]", postcode[1]) != None):
-                self.write_console_output(postcode + " is WN style bruh.")
-            
-            else:
-                self.write_console_output(postcode + " is not recognised.")
-
-        # if is 3 characters (ie L20 postcode, WN6 postcode).
-        elif len(postcode) == 3:
-            # if the area code is 1 character and the district
-            # number is 2 digits (ie L20 postcode).
-            if (re.match("[a-zA-Z]", postcode[0]) != None and
-                    re.match("[0-9]", postcode[1]) != None and
-                    re.match("[0-9]", postcode[2]) != None):
-                self.write_console_output(postcode + " is L20 style bruh.")            
-
-            # if the area code is 2 characters and the district number
-            # is 1 digit (ie WN6 postcode).
-            elif (re.match("[a-zA-Z]", postcode[0]) != None and
-                    re.match("[a-zA-Z]", postcode[1]) != None and
-                    re.match("[0-9]", postcode[2]) != None):
-                self.write_console_output(postcode + " is WN6 style bruh.")            
-
-            else:
-                self.write_console_output(postcode + " is not recognised.")
+        # if the area code is 2 characters, but contains an open
+        # bracket indicating the start of a subset of postcodes.
+        elif formatted_input[0:3] == "xx(":
+            self.write_console_output(original_input + " is LA( style.")
         
-        # if is 4 characters (ie LA20, EC2M postcodes).
-        elif len(postcode) == 4:
-            # if the area code is 2 characters and the district
-            # number is 2 digit (ie LA20 postcode).
-            if (re.match("[a-zA-Z]", postcode[0]) != None and
-                    re.match("[a-zA-Z]", postcode[1]) != None and
-                    re.match("[0-9]", postcode[2]) != None and
-                    re.match("[0-9]", postcode[3]) != None):
-                self.write_console_output(postcode + " is LA20 style bruh.")                 
+        # if only 1 alphabet character (ie L postcode).
+        elif len(formatted_input) == 1 and formatted_input == "x":
+            self.write_console_output(original_input + "is L style")
+        
+        # if is a district specific postcode consisting of 1 alphabet
+        # character and 1 numerical (ie L1 postcode).
+        elif len(formatted_input) == 2 and formatted_input == "x0":
+            self.write_console_output(original_input + "is L1 style")
 
-            # if the area code is 2 characters and the district number
-            # is 1 digit and 1 character (ie EC & WC London postcodes).
-            elif (re.match("[a-zA-Z]", postcode[0]) != None and
-                    re.match("[a-zA-Z]", postcode[1]) != None and
-                    re.match("[0-9]", postcode[2]) != None and
-                    re.match("[a-zA-Z]", postcode[3]) != None):
-                self.write_console_output(postcode + " is EC2M style bruh.")
-            
-            else:
-                self.write_console_output(postcode + " is not recognised.")
+        # if is non-district specific covering the entire area of
+        # a two letter postcode (ie WN postcode).
+        elif len(formatted_input) == 2 and formatted_input == "xx":
+            self.write_console_output(original_input + "is WN style")
+        
+        # if the area code is 1 character and the district number is
+        # 2 digits (ie L20 postocode).
+        elif len(formatted_input) == 3 and formatted_input == "x00":
+            self.write_console_output(original_input + "is L20 style")
+        
+        # if the area code is 2 characters and the district number
+        # is 1 digit (ie WN6 postcode).
+        elif len(formatted_input) == 3 and formatted_input == "xx0":
+            self.write_console_output(original_input + " is WN6 style bruh.")
+
+        # if the area code is 2 characters and the district number is
+        # 2 digits (ie LA20 postcode).
+        elif len(formatted_input) == 4 and formatted_input == "xx00":
+            self.write_console_output(original_input + " is LA20 style bruh")
+
+        # if the area code is 2 characters and the district number
+        # is 1 digit and 1 character (ie EC & WC London postcodes).
+        elif len(formatted_input) == 4 and formatted_input == "xx0x":
+            self.write_console_output(original_input + " is EC2M style bruh")
+
+        else:
+            self.write_console_output(original_input + " is not recognised.")
 
     def delimit_user_input(self):
         user_input_text = "".join(self.get_user_input().replace(".",",").strip().split())
@@ -374,8 +372,8 @@ class GUI():
         return delimited_data
 
     def create_zone_model(self):
-        """ Creates a new zone model and prepares the user for data
-        entry of postcodes and zones against this new model. """
+        """Creates a new zone model and prepares the user for data
+        entry of postcodes and zones against this new model."""
 
         zone_model = None
 
@@ -395,7 +393,7 @@ class GUI():
         return zone_model
     
     def write_console_output(self, text, newline = True):
-        """ Writes text to the console output screen of the GUI. """
+        """Writes text to the console output screen of the GUI."""
         
         if newline == False:
             self.__text_console_output_box.write(text)
@@ -403,11 +401,9 @@ class GUI():
         else:
             self.__text_console_output_box.write(text + "\n")
         
-
-    
     def clear_console_output(self):
-        """ Removes all text from the console output screen of the
-        GUI. """
+        """Removes all text from the console output screen of the
+        GUI."""
         console_box = self.__text_console_output_box
         print(console_box.PositionToXY(4))
         total_lines = console_box.GetNumberOfLines()
