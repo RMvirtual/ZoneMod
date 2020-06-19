@@ -283,10 +283,12 @@ class GUI():
 
         for item in user_input_data:
             formatted_input = self.detect_user_input_format(item)
-            area_code, district_numbers = self.determine_input_operation(
-                formatted_input, item)
+            
+            area_code, district_numbers, operation_type \
+                = self.determine_operation_type(formatted_input, item)
 
-            self.amend_postcode_zone(area_code, district_numbers)
+            self.amend_postcode_zone(area_code, district_numbers,
+                operation_type)
 
     def detect_user_input_format(self, user_input):
         """Determines what type of structure the postcode being
@@ -307,23 +309,36 @@ class GUI():
 
         return input_format
 
-    def determine_input_operation(self, formatted_input, original_input):
+    def determine_operation_type(self, formatted_input, original_input,
+        master_area_code = None):
         """Assesses the state of the formatted user input provided
         along with other modes and variables to determine what
         operation should be performed."""
 
-        range_characters = ["x0-0", "x0-00", "x00-0", "x00-00"
-                            "x0-x0", "x0-x00", "x00-x0", "x00-x00",
-                            "xx0-0", "xx0-00", "xx00-0", "xx00-00",
-                            "xx0-xx0", "xx0-xx00", "xx00-xx0", "xx00-xx00"]
+        range_between_characters = [
+            "x0-0", "x0-00", "x00-0", "x00-00",
+            "x0-x0", "x0-x00", "x00-x0", "x00-x00",
+            "xx0-0", "xx0-00", "xx00-0", "xx00-00",
+            "xx0-xx0", "xx0-xx00", "xx00-xx0", "xx00-xx00"]
+
+        range_after_characters = [
+            "x0+", "x00+", "xx0+", "xx00+"]
+
+        numerical_only_characters = [
+            "0", "00", "0-00", "00-00", "0+", "00++"]
+
+        if formatted_input in numerical_only_characters and master_area_code:
+            self.determine_operation_type()
+
 
         # if the area code is 1 character, but contains an open bracket
         # indicating the start of a subset of postcodes.
-        if formatted_input[0:2] == "x(":
+        elif formatted_input[0:2] == "x(":
             self.write_console_output(original_input + " is L( style.")
             
             area_code = original_input[0]
-            district_numbers = "subset"
+            district_numbers = original_input[2:]
+            operation_type = "subset"
         
         # if the area code is 2 characters, but contains an open
         # bracket indicating the start of a subset of postcodes.
@@ -331,56 +346,98 @@ class GUI():
             self.write_console_output(original_input + " is LA( style.")
 
             area_code = original_input[0:2]
-            district_numbers = "subset"
+            district_numbers = original_input[3:]
+            operation_type = "subset"
         
         # if is a postcode range (see range characters list but as
         # an example L1-L12).
-        elif formatted_input in range_characters:
+        elif formatted_input in range_between_characters:
             if formatted_input[0:2] == "x0":
                 self.write_console_output(original_input 
                     + " is L1-range style.")
                 
                 area_code = original_input[0]
-                district_numbers = "range"
+                district_numbers = original_input[1:]
+                operation_type = "range-between"
 
             elif formatted_input[0:2] == "xx":
                 self.write_console_output(original_input 
                     + " is L10-range style.")
 
                 area_code = original_input[0:2]
-                district_numbers = "range"
+                district_numbers = original_input[2:]
+                operation_type = "range-between"
+        
+        # if is a postcode range of all codes after a certain district
+        # (ie L20+ or L1+).
+        elif formatted_input in range_after_characters:
+            if formatted_input == "x0+":
+                self.write_console_output(original_input
+                    + "is L1+ style.")
+                
+                area_code = original_input[0]
+                district_numbers = original_input[1]
+                operation_type = "range-after"
+            
+            elif formatted_input== "x00+":
+                self.write_console_output(original_input
+                    + "is L10+ style.")
+                
+                area_code = original_input[0]
+                district_numbers = original_input[1:3]
+                operation_type = "range-after"
+            
+            elif formatted_input == "xx0+":
+                self.write_console_output(original_input
+                    + "is LA1+ style.")
+                
+                area_code = original_input[0:2]
+                district_numbers = original_input[2]
+                operation_type = "range-after"
+            
+            elif formatted_input == "xx00+":
+                self.write_console_output(original_input
+                    + "is LA10+ style.")
+                
+                area_code = original_input[0:2]
+                district_numbers = original_input[2:4]
+                operation_type = "range-after"
 
         # if only 1 alphabet character (ie L postcode).
         elif formatted_input == "x":
-            self.write_console_output(original_input + "is L style")
+            self.write_console_output(original_input + " is L style")
 
             area_code = original_input
             district_numbers = "all"
+            operation_type = "all"
         
         # if is a district specific postcode consisting of 1 alphabet
         # character and 1 numerical (ie L1 postcode).
         elif formatted_input == "x0":
-            self.write_console_output(original_input + "is L1 style")
+            self.write_console_output(original_input + " is L1 style")
 
             area_code = original_input[0]
             district_numbers = original_input[1]
-
-        # if is non-district specific covering the entire area of
-        # a two letter postcode (ie WN postcode).
-        elif formatted_input == "xx":
-            self.write_console_output(original_input + "is WN style")
-            
-            area_code = original_input[0:2]
-            district_numbers = "all"
+            operation_type = "specific"
         
         # if the area code is 1 character and the district number is
         # 2 digits (ie L20 postocode).
         elif formatted_input == "x00":
-            self.write_console_output(original_input + "is L20 style")
+            self.write_console_output(original_input + " is L20 style")
 
             area_code = original_input[0]
             district_numbers = original_input[1:3]
-        
+            operation_type = "specific"
+
+        # if is non-district specific covering the entire area of
+        # a two letter postcode (ie WN postcode).
+        elif formatted_input == "xx":
+            self.write_console_output(original_input + " is WN style")
+            
+            area_code = original_input[0:2]
+            district_numbers = "all"
+            operation_type = "all"
+             
         # if the area code is 2 characters and the district number
         # is 1 digit (ie WN6 postcode).
         elif formatted_input == "xx0":
@@ -388,6 +445,7 @@ class GUI():
 
             area_code = original_input[0:2]
             district_numbers = original_input[2]
+            operation_type = "specific"
 
         # if the area code is 2 characters and the district number is
         # 2 digits (ie LA20 postcode) or 1 digit and 1 alphabetic
@@ -398,17 +456,20 @@ class GUI():
 
             area_code = original_input[0:2]
             district_numbers = original_input[2:4]
+            operation_type = "specific"
 
         else:
             self.write_console_output(original_input + " is not recognised.")
             
             area_code = None
             district_numbers = None
+            operation_type = None
         
-        return area_code, district_numbers
+        return area_code, district_numbers, operation_type
 
     def delimit_user_input(self):
-        user_input_text = "".join(self.get_user_input().replace(".",",").strip().split())
+        user_input_text = "".join(
+            self.get_user_input().replace(".",",").strip().split())
 
         self.write_console_output("Processing " + user_input_text + "\n")
 
@@ -426,20 +487,101 @@ class GUI():
         
         return delimited_data
 
-    def amend_postcode_zone(self, area_code, district_numbers):
+    def amend_postcode_zone(self, area_code, district_numbers,
+            operation_type):
         zone_model = self.__current_zone_model
         postcodes = self.__current_zone_model_postcodes
         zone = self.get_zone_input()
 
-        print(area_code)
-        print(zone)
+        # all postcodes between a specific district range (ie L1-L20).
+        if operation_type == "range-between":
+            district_range_string = re.sub("[a-zA-Z]", "", district_numbers)
+            district_range = district_range_string.split("-")
+        
+            start_district_number = int(district_range[0])
+            end_district_number = int(district_range[1])
 
-        # full area amend.
-        for postcode in postcodes:
-            if postcode.get_area_code() == area_code:
-                self.write_console_output(
-                    postcode.get_area_code() + ": " + zone)
-                postcode.amend_zone(zone)
+            for postcode in postcodes:
+                current_area_code = postcode.get_area_code()
+
+                if current_area_code == area_code:
+                    current_district_number = int(
+                        postcode.get_district_number())
+                    
+                    if (current_district_number >= start_district_number and
+                            current_district_number <= end_district_number):
+                        postcode.amend_zone(zone)
+                        
+                        self.write_console_output(postcode.get_full_postcode()
+                        + ": " + postcode.get_zone())
+                    
+                    else:
+                        self.write_console_output(postcode.get_full_postcode()
+                        + ": ignored.")
+        
+        # all postcodes after a specific district (ie L10+).
+        elif operation_type == "range-after":
+            district_range_string = re.sub("[a-zA-Z]+", "", district_numbers)
+            start_district_number = int(district_range_string)
+
+            for postcode in postcodes:
+                current_area_code = postcode.get_area_code()
+
+                if current_area_code == area_code:
+                    current_district_number = int(
+                        postcode.get_district_number())
+                    
+                    if current_district_number >= start_district_number:
+                        postcode.amend_zone(zone)
+
+                        self.write_console_output(postcode.get_full_postcode()
+                        + ": " + postcode.get_zone())
+
+                    else:
+                        self.write_console_output(postcode.get_full_postcode()
+                        + ": ignored.")
+
+        # amend a specific list of postcodes.
+        elif operation_type == "subset":
+            # kind of recursively run the whole submission process again.
+            # Very inception like. Hurts my head. Basically assuming is the
+            # start of a subset (ie L(1-10, 15)) and tries to figure out 
+            # what to do next if it were a normal string.
+            district_numbers = re.sub("(", "", district_numbers)
+
+            input_format = self.detect_user_input(
+                area_code + district_numbers)
+            self.determine_operation_type()
+
+        # specific postcodes to be amended (ie L10 only).
+        elif operation_type == "specific":
+            district_range_string = re.sub("[a-zA-Z]", "", district_numbers)
+            district_number = int(district_range_string)
+
+            for postcode in postcodes:
+                current_area_code = postcode.get_area_code()
+
+                if current_area_code == area_code:
+                    current_district_number = int(
+                        postcode.get_district_number())
+                    
+                    if current_district_number == district_number:
+                        postcode.amend_zone(zone)
+
+                        self.write_console_output(postcode.get_full_postcode()
+                        + ": " + postcode.get_zone())
+
+                    else:
+                        self.write_console_output(postcode.get_full_postcode()
+                        + ": ignored.")
+
+        # amend all postcodes in one area.
+        elif operation_type == "all":
+            for postcode in postcodes:
+                if postcode.get_area_code() == area_code:
+                    self.write_console_output(
+                        postcode.get_area_code() + ": " + zone)
+                    postcode.amend_zone(zone)
 
     def create_zone_model(self):
         """Creates a new zone model and prepares the user for data
