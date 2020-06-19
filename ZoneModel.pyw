@@ -100,6 +100,6 @@ class ZoneModel():
             for postcode in postcodes:
                 # csvwriter needs a list object to work so creating
                 # a list even though only one row.
-                row = [postcode.get_full_postcode()]
+                row = [postcode.get_full_postcode(), postcode.get_zone()]
                 
                 csv_writer.writerow(row)

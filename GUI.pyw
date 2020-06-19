@@ -11,6 +11,7 @@ class GUI():
         self.__app = wx.App(False)
         self.__mode = None
         self.__current_zone_model = None
+        self.__current_zone_model_postcodes = None
         self.__tariff_type = "UK Only"
 
         self.__create_widgets()
@@ -204,9 +205,12 @@ class GUI():
             print("Create Zone Model button pressed.")
 
             if self.__mode == None:
-                self.__current_zone_model = self.create_zone_model()
+                zone_model = self.create_zone_model()
 
-                if self.__current_zone_model:
+                if zone_model:
+                    self.__current_zone_model = zone_model
+                    self.__current_zone_model_postcodes \
+                        = zone_model.get_all_postcodes()
                     self.change_mode("create zone model")
 
         # amend zone model button.
@@ -281,6 +285,8 @@ class GUI():
             formatted_input = self.detect_user_input_format(item)
             area_code, district_numbers = self.determine_input_operation(
                 formatted_input, item)
+
+            self.amend_postcode_zone(area_code, district_numbers)
 
     def detect_user_input_format(self, user_input):
         """Determines what type of structure the postcode being
@@ -419,6 +425,21 @@ class GUI():
                 self.write_console_output(item)
         
         return delimited_data
+
+    def amend_postcode_zone(self, area_code, district_numbers):
+        zone_model = self.__current_zone_model
+        postcodes = self.__current_zone_model_postcodes
+        zone = self.get_zone_input()
+
+        print(area_code)
+        print(zone)
+
+        # full area amend.
+        for postcode in postcodes:
+            if postcode.get_area_code() == area_code:
+                self.write_console_output(
+                    postcode.get_area_code() + ": " + zone)
+                postcode.amend_zone(zone)
 
     def create_zone_model(self):
         """Creates a new zone model and prepares the user for data
