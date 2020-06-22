@@ -1,5 +1,8 @@
-import wx
+import copy
+import csv
 import re
+import wx
+from FileSystemNavigation import FileSystemNavigation
 from ZoneModel import ZoneModel
 
 class GUI():
@@ -202,6 +205,7 @@ class GUI():
 
             self.__current_zone_model.save_zone_model()
             self.check_zone_model_gaps()
+            self.check_duplicate_zone_models()
 
         # create zone model button.
         elif event.GetEventObject() == self.__create_zone_model_button:
@@ -362,9 +366,7 @@ class GUI():
         input_format = re.sub("[a-zA-Z]", "x", user_input)
         input_format = re.sub("[0-9]", "0", input_format)
 
-        self.write_console_output("Format is " + input_format)
-
-        print("User input is: " + user_input)
+        self.write_console_output("\nFormat is " + input_format)
 
         return input_format
 
@@ -590,7 +592,7 @@ class GUI():
             for postcode in postcodes:
                 current_area_code = postcode.get_area_code()
 
-                if current_area_code == area_code:
+                if current_area_code == area_code.upper():
                     current_district_number = int(
                         postcode.get_district_number())
                     
@@ -609,7 +611,7 @@ class GUI():
             for postcode in postcodes:
                 current_area_code = postcode.get_area_code()
 
-                if current_area_code == area_code:
+                if current_area_code == area_code.upper():
                     current_district_number = int(
                         postcode.get_district_number())
                     
@@ -631,7 +633,7 @@ class GUI():
             for postcode in postcodes:
                 current_area_code = postcode.get_area_code()
 
-                if current_area_code == area_code:
+                if current_area_code == area_code.upper():
                     current_district_number = int(
                         postcode.get_district_number())
                     
@@ -644,7 +646,7 @@ class GUI():
         # amend all postcodes in one area.
         elif operation_type == "all":
             for postcode in postcodes:
-                if postcode.get_area_code() == area_code:
+                if postcode.get_area_code() == area_code.upper():
                     self.write_console_output(
                         postcode.get_full_postcode() + ": " + new_zone)
                     postcode.amend_zone(new_zone)
@@ -669,7 +671,49 @@ class GUI():
         zm_name_input_box.Destroy()
 
         return zone_model
-    
+
+    def check_duplicate_zone_models(self):
+        """Checks for any duplicate zone models the user has already
+        created to assist with reusing ones already in place."""
+
+        file_system_navigation = FileSystemNavigation()
+
+        zone_models_directory = (
+            file_system_navigation.get_zone_models_directory())
+        
+        zone_models_directory_items = (
+            file_system_navigation.get_directory_items(zone_models_directory))
+
+        current_zone_model = self.get_current_zone_model()
+
+        for item in zone_models_directory_items:
+            if item.endswith(".csv"):
+                postcodes_to_check = copy.deepcopy(
+                    current_zone_model.get_all_postcodes())
+
+                with open(zone_models_directory + item,
+                        newline="") as zone_model_csv:
+                    csv_reader = csv.reader(zone_model_csv, delimiter = ",")
+
+                    for row in csv_reader:
+
+                        postcode_to_test = row[0]
+                        zone_to_test = row[1]
+
+                        for postcode in postcodes_to_check:
+                            full_postcode = postcode.get_full_postcode()
+                            zone = postcode.get_zone()
+
+                            if full_postcode == postcode_to_test:
+                                if zone == zone_to_test:                                
+                                    postcodes_to_check.remove(postcode)
+
+            if postcodes_to_check:
+                self.write_console_output("\n" + item + " does not match.")
+            
+            else:
+                self.write_console_output("\n" + item + " matches.")
+
     def write_console_output(self, text, newline = True):
         """Writes text to the console output screen of the GUI."""
         

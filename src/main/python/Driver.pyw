@@ -10,5 +10,6 @@ def main():
     """ Driver for the main application to run. """
 
     gui = GUI()
+    gui.check_duplicate_zone_models()
 
 main()

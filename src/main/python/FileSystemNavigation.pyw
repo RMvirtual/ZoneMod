@@ -10,6 +10,10 @@ class FileSystemNavigation():
 
         return os.getcwd()
     
+    def get_directory_items(self, path):
+        """Returns a list of folders and files in a directory."""
+        return os.listdir(path)
+
     def get_directory_path(self):
         """Gets the directory path of the ZoneMod folder that all the files
         and subfolders reside in."""

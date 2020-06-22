@@ -5,7 +5,7 @@ class Postcode():
         """ Constructor method. """
         self.__area_code = area_code.upper()
         self.__district_number = district_number
-        self.__zone = None
+        self.__zone = ""
 
     def get_area_code(self):
         """ Returns the area code (ie PO42 would return PO). """
