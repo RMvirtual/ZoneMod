@@ -328,7 +328,6 @@ class GUI():
                 = self.determine_operation_type(formatted_input, item)
 
             if operation_type == "start of subset":
-                print("In start of subset.")
                 self.set_master_area_code(area_code)
 
                 user_input_data = area_code + district_numbers
@@ -343,7 +342,6 @@ class GUI():
                 self.clear_master_area_code()
             
             elif (operation_type == "numerical only" and master_area_code):
-                print("In numerical only.")
                 user_input_data = master_area_code + district_numbers
 
                 self.submit(user_input_data)
@@ -388,6 +386,8 @@ class GUI():
             "0", "00", "0-0", "0-00", "00-0", "00-00", "0+", "00++"]
 
         if formatted_input in numerical_only_characters:
+            self.write_console_output(original_input + " is numerical only.")
+            
             area_code = None
             district_numbers = original_input
             operation_type = "numerical only"            
@@ -459,13 +459,14 @@ class GUI():
         # if is a postcode range of all codes after a certain district
         # (ie L20+ or L1+).
         elif formatted_input in range_after_characters:
+            operation_type = "range-after"
+
             if formatted_input == "x0+":
                 self.write_console_output(original_input
                     + "is L1+ style.")
                 
                 area_code = original_input[0]
                 district_numbers = original_input[1]
-                operation_type = "range-after"
             
             elif formatted_input== "x00+":
                 self.write_console_output(original_input
@@ -473,7 +474,6 @@ class GUI():
                 
                 area_code = original_input[0]
                 district_numbers = original_input[1:3]
-                operation_type = "range-after"
             
             elif formatted_input == "xx0+":
                 self.write_console_output(original_input
@@ -481,7 +481,6 @@ class GUI():
                 
                 area_code = original_input[0:2]
                 district_numbers = original_input[2]
-                operation_type = "range-after"
 
             elif formatted_input == "xx00+":
                 self.write_console_output(original_input
@@ -489,11 +488,12 @@ class GUI():
                 
                 area_code = original_input[0:2]
                 district_numbers = original_input[2:4]
-                operation_type = "range-after"
 
-        # if only 1 alphabet character (ie L postcode).
-        elif formatted_input == "x":
-            self.write_console_output(original_input + " is L style")
+        # if is non-district specific covering the entire area of
+        # a one or two letter postcode (ie L or WN postcode).
+        elif formatted_input == "x" or formatted_input == "xx":
+            self.write_console_output(original_input + " covers a full "
+                + "postcode.")
 
             area_code = original_input
             district_numbers = "all"
@@ -502,7 +502,7 @@ class GUI():
         # if is a district specific postcode consisting of 1 alphabet
         # character and 1 numerical (ie L1 postcode).
         elif formatted_input == "x0":
-            self.write_console_output(original_input + " is L1 style")
+            self.write_console_output(original_input + " is L1 style.")
 
             area_code = original_input[0]
             district_numbers = original_input[1]
@@ -511,25 +511,16 @@ class GUI():
         # if the area code is 1 character and the district number is
         # 2 digits (ie L20 postocode).
         elif formatted_input == "x00":
-            self.write_console_output(original_input + " is L20 style")
+            self.write_console_output(original_input + " is L20 style.")
 
             area_code = original_input[0]
             district_numbers = original_input[1:3]
             operation_type = "specific"
 
-        # if is non-district specific covering the entire area of
-        # a two letter postcode (ie WN postcode).
-        elif formatted_input == "xx":
-            self.write_console_output(original_input + " is WN style")
-            
-            area_code = original_input[0:2]
-            district_numbers = "all"
-            operation_type = "all"
-
         # if the area code is 2 characters and the district number
         # is 1 digit (ie WN6 postcode).
         elif formatted_input == "xx0":
-            self.write_console_output(original_input + " is WN6 style bruh.")
+            self.write_console_output(original_input + " is WN6 style.")
 
             area_code = original_input[0:2]
             district_numbers = original_input[2]
@@ -539,8 +530,7 @@ class GUI():
         # 2 digits (ie LA20 postcode) or 1 digit and 1 alphabetic
         # character (ie London postcodes such as EC2M or WC2H).
         elif formatted_input == "xx00" or formatted_input == "xx0x":
-            self.write_console_output(original_input + " is LA20/EC2M style "
-            + "bruh")
+            self.write_console_output(original_input + " is LA20/EC2M style")
 
             area_code = original_input[0:2]
             district_numbers = original_input[2:4]
@@ -620,10 +610,6 @@ class GUI():
 
                         self.write_console_output(postcode.get_full_postcode()
                         + ": " + postcode.get_zone())
-
-                    else:
-                        self.write_console_output(postcode.get_full_postcode()
-                        + ": ignored.")
 
         # specific postcodes to be amended (ie L10 only).
         elif operation_type == "specific":
