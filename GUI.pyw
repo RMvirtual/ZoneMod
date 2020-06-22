@@ -185,7 +185,8 @@ class GUI():
         if event.GetEventObject() == self.__submit_button:
             print("Submit button pressed")
 
-            self.submit()
+            user_input = self.get_user_input()
+            self.submit(user_input)
 
         # skip button.
         elif event.GetEventObject() == self.__skip_button:
@@ -205,14 +206,13 @@ class GUI():
         elif event.GetEventObject() == self.__create_zone_model_button:
             print("Create Zone Model button pressed.")
 
-            if self.__mode == None:
-                zone_model = self.create_zone_model()
+            zone_model = self.create_zone_model()
 
-                if zone_model:
-                    self.__current_zone_model = zone_model
-                    self.__current_zone_model_postcodes \
-                        = zone_model.get_all_postcodes()
-                    self.change_mode("create zone model")
+            if zone_model:
+                self.__current_zone_model = zone_model
+                self.__current_zone_model_postcodes \
+                    = zone_model.get_all_postcodes()
+                self.change_mode("create zone model")
 
         # amend zone model button.
         elif event.GetEventObject() == self.__amend_zone_model_button:
@@ -262,9 +262,11 @@ class GUI():
     
     def set_master_area_code(self, new_area_code):
         self.__master_area_code = new_area_code
+        self.write_console_output("Master Code set to: " + str(new_area_code))
 
     def clear_master_area_code(self):
         self.__master_area_code = None
+        self.write_console_output("Master Code cleared.")
 
     def get_user_input(self):
         """Gets the text from the user input box."""
@@ -287,19 +289,41 @@ class GUI():
         
         return self.__zone_input_box.GetValue()
 
-    def submit(self):
+    def submit(self, user_input_data):
         """Submit data to the zone model to be added/amended."""
-        user_input_data = self.delimit_user_input()
+        delimited_user_input_data = self.delimit_input(user_input_data)
 
-        for item in user_input_data:
+        for item in delimited_user_input_data:
             formatted_input = self.detect_user_input_format(item)
+            master_area_code = self.get_master_area_code()
             
             area_code, district_numbers, operation_type \
                 = self.determine_operation_type(formatted_input, item)
 
+            if operation_type == "start of subset":
+                print("In start of subset.")
+                self.set_master_area_code(area_code)
+
+                user_input_data = area_code + district_numbers
+
+                self.submit(user_input_data)
+            
+            elif operation_type == "end of subset":
+                area_code = master_area_code
+
+                user_input_data = area_code + district_numbers
+                self.submit(user_input_data)
+                self.clear_master_area_code()
+            
+            elif (operation_type == "numerical only" and master_area_code):
+                print("In numerical only.")
+                user_input_data = master_area_code + district_numbers
+
+                self.submit(user_input_data)
+
             self.amend_postcode_zone(area_code, district_numbers,
                 operation_type)
-
+        
     def detect_user_input_format(self, user_input):
         """Determines what type of structure the postcode being
         analysed is is. Dependent upon how many characters in the
@@ -311,16 +335,17 @@ class GUI():
         hyphens that are present indicating a range."""
 
         # substitute all letters for x's, all numbers for 0, and
-        # maintain hyphens and brackets.
+        # maintain any hyphens and brackets.
         input_format = re.sub("[a-zA-Z]", "x", user_input)
         input_format = re.sub("[0-9]", "0", input_format)
 
         self.write_console_output("Format is " + input_format)
 
+        print("User input is: " + user_input)
+
         return input_format
 
-    def determine_operation_type(self, formatted_input, original_input,
-        master_area_code = None):
+    def determine_operation_type(self, formatted_input, original_input):
         """Assesses the state of the formatted user input provided
         along with other modes and variables to determine what
         operation should be performed."""
@@ -335,45 +360,59 @@ class GUI():
             "x0+", "x00+", "xx0+", "xx00+"]
 
         numerical_only_characters = [
-            "0", "00", "0-00", "00-00", "0+", "00++"]
+            "0", "00", "0-0", "0-00", "00-0", "00-00", "0+", "00++"]
 
-        if formatted_input in numerical_only_characters and master_area_code:
-            input_format = self.detect_user_input(
-                master_area_code + original_input)
-            
-            area_code, district_numbers, operation_type \
-                = self.determine_operation_type(
-                    input_format, master_area_code, original_input)
+        if formatted_input in numerical_only_characters:
+            area_code = None
+            district_numbers = original_input
+            operation_type = "numerical only"            
 
         # if the area code is 1 character, but contains an open bracket
         # indicating the start of a subset of postcodes.
-        elif formatted_input[0:2] == "x(":
+        elif formatted_input[0:2] == "x(" and formatted_input[-1] != ")":
             self.write_console_output(original_input + " is L( style.")
-            
-            revised_original_input = re.sub("\(", "", original_input)
+
             area_code = original_input[0]
             district_numbers = original_input[2:]
-            operation_type = "subset"
+            operation_type = "start of subset"
 
-            input_format = self.detect_user_input_format(
-                area_code + district_numbers)
-            
-            area_code, district_numbers, operation_type \
-                = self.determine_operation_type(
-                    input_format,
-                    revised_original_input)
+        # if it looks like the start of a subset, but only has one
+        # set of district numbers in the entire subset.
+        elif formatted_input[0:2] == "x(" and formatted_input[-1] == ")":
+            self.write_console_output(original_input + " is L(1) style.")
 
-            self.set_master_area_code(area_code)
+            area_code = original_input[0]
+            district_numbers = original_input[2:-1]
+            operation_type = "start of subset"
         
+
         # if the area code is 2 characters, but contains an open
         # bracket indicating the start of a subset of postcodes.
-        elif formatted_input[0:3] == "xx(":
+        elif formatted_input[0:3] == "xx(" and formatted_input[-1] != ")":
             self.write_console_output(original_input + " is LA( style.")
 
             area_code = original_input[0:2]
             district_numbers = original_input[3:]
-            operation_type = "subset"
+            operation_type = "start of subset"
         
+        # if it looks like the start of a subset, but only has one set
+        # of district numbers in the entire subset.
+        elif formatted_input[0:3] == "xx(" and formatted_input[-1] == ")":
+            self.write_console_output(original_input + " is LA( style.")
+
+            area_code = original_input[0:2]
+            district_numbers = original_input[3:-1]
+            operation_type = "start of subset"
+
+        # end of a subset
+        elif formatted_input[-1] == ")":
+            self.write_console_output(original_input
+                + "is the end of a subset ).")
+            
+            area_code = None
+            district_numbers = original_input[:-1]
+            operation_type = "end of subset"
+
         # if is a postcode range (see range characters list but as
         # an example L1-L12).
         elif formatted_input in range_between_characters:
@@ -419,7 +458,7 @@ class GUI():
                 area_code = original_input[0:2]
                 district_numbers = original_input[2]
                 operation_type = "range-after"
-            
+
             elif formatted_input == "xx00+":
                 self.write_console_output(original_input
                     + "is LA10+ style.")
@@ -435,7 +474,7 @@ class GUI():
             area_code = original_input
             district_numbers = "all"
             operation_type = "all"
-        
+
         # if is a district specific postcode consisting of 1 alphabet
         # character and 1 numerical (ie L1 postcode).
         elif formatted_input == "x0":
@@ -444,7 +483,7 @@ class GUI():
             area_code = original_input[0]
             district_numbers = original_input[1]
             operation_type = "specific"
-        
+
         # if the area code is 1 character and the district number is
         # 2 digits (ie L20 postocode).
         elif formatted_input == "x00":
@@ -462,7 +501,7 @@ class GUI():
             area_code = original_input[0:2]
             district_numbers = "all"
             operation_type = "all"
-             
+
         # if the area code is 2 characters and the district number
         # is 1 digit (ie WN6 postcode).
         elif formatted_input == "xx0":
@@ -492,25 +531,25 @@ class GUI():
         
         return area_code, district_numbers, operation_type
 
-    def delimit_user_input(self):
-        user_input_text = "".join(
-            self.get_user_input().replace(".",",").strip().split())
+    def delimit_input(self, user_input):
+        user_input = "".join(user_input.replace(".",",").strip().split())
 
-        self.write_console_output("Processing " + user_input_text + "\n")
+        self.write_console_output("Processing " + user_input + "\n")
 
-        delimited_data = user_input_text.split(",")
+        delimited_user_input_data = user_input.split(",")
 
         self.write_console_output("Split into:\n")
 
-        for item in delimited_data:
+        # remove empty items.
+        for item in delimited_user_input_data:
             if item == "":
                 self.write_console_output("Blank Item removed")
-                delimited_data.remove(item)
+                delimited_user_input_data.remove(item)
             
             else:
                 self.write_console_output(item)
         
-        return delimited_data
+        return delimited_user_input_data
 
     def amend_postcode_zone(self, area_code, district_numbers,
             operation_type):
@@ -539,10 +578,6 @@ class GUI():
                         
                         self.write_console_output(postcode.get_full_postcode()
                         + ": " + postcode.get_zone())
-                    
-                    else:
-                        self.write_console_output(postcode.get_full_postcode()
-                        + ": ignored.")
         
         # all postcodes after a specific district (ie L10+).
         elif operation_type == "range-after":
@@ -565,18 +600,6 @@ class GUI():
                     else:
                         self.write_console_output(postcode.get_full_postcode()
                         + ": ignored.")
-
-        # amend a specific list of postcodes.
-        elif operation_type == "subset":
-            # kind of recursively run the whole submission process again.
-            # Very inception like. Hurts my head. Basically assuming is the
-            # start of a subset (ie L(1-10, 15)) and tries to figure out 
-            # what to do next if it were a normal string.
-            district_numbers = re.sub("(", "", district_numbers)
-
-            input_format = self.detect_user_input(
-                area_code + district_numbers)
-            self.determine_operation_type()
 
         # specific postcodes to be amended (ie L10 only).
         elif operation_type == "specific":
