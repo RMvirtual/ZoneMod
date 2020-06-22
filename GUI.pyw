@@ -77,15 +77,15 @@ class GUI():
         self.__frame.Bind(wx.EVT_BUTTON, self.button_click,
             self.__skip_button)
 
-        # finished button.
-        self.__finished_button = wx.Button(
+        # save button.
+        self.__save_button = wx.Button(
             self.__user_input_panel,
-            label = "Finished",
+            label = "Save",
             size = (145, 25),
             pos = (450, 165))
 
         self.__frame.Bind(wx.EVT_BUTTON, self.button_click,
-            self.__finished_button)
+            self.__save_button)
 
         # exit button.
         self.__exit_button = wx.Button(
@@ -197,10 +197,11 @@ class GUI():
             print("Exit button pressed")
 
         # finished button.
-        elif event.GetEventObject() == self.__finished_button:
-            print("Finished button pressed")
+        elif event.GetEventObject() == self.__save_button:
+            print("Save button pressed")
 
             self.__current_zone_model.save_zone_model()
+            self.check_zone_model_gaps()
 
         # create zone model button.
         elif event.GetEventObject() == self.__create_zone_model_button:
@@ -289,8 +290,27 @@ class GUI():
         
         return self.__zone_input_box.GetValue()
 
+    def get_current_zone_model(self):
+        return self.__current_zone_model
+
+    def check_zone_model_gaps(self):
+        """Checks the current zone model's postcodes for missing 
+        zones."""
+        
+        zone_model = self.get_current_zone_model()
+
+        postcodes = zone_model.get_all_postcodes()
+        missing_postcodes = []
+
+        for postcode in postcodes:
+            if not postcode.get_zone():
+                full_postcode = postcode.get_full_postcode()
+                missing_postcodes.append(postcode)
+                self.write_console_output(full_postcode + " is missing.")
+
     def submit(self, user_input_data):
         """Submit data to the zone model to be added/amended."""
+        
         delimited_user_input_data = self.delimit_input(user_input_data)
 
         for item in delimited_user_input_data:
@@ -385,7 +405,6 @@ class GUI():
             district_numbers = original_input[2:-1]
             operation_type = "start of subset"
         
-
         # if the area code is 2 characters, but contains an open
         # bracket indicating the start of a subset of postcodes.
         elif formatted_input[0:3] == "xx(" and formatted_input[-1] != ")":
@@ -619,16 +638,12 @@ class GUI():
                         self.write_console_output(postcode.get_full_postcode()
                         + ": " + postcode.get_zone())
 
-                    else:
-                        self.write_console_output(postcode.get_full_postcode()
-                        + ": ignored.")
-
         # amend all postcodes in one area.
         elif operation_type == "all":
             for postcode in postcodes:
                 if postcode.get_area_code() == area_code:
                     self.write_console_output(
-                        postcode.get_area_code() + ": " + zone)
+                        postcode.get_full_postcode() + ": " + zone)
                     postcode.amend_zone(zone)
 
     def create_zone_model(self):
@@ -665,21 +680,14 @@ class GUI():
         """Removes all text from the console output screen of the
         GUI."""
         console_box = self.__text_console_output_box
-        print(console_box.PositionToXY(4))
         total_lines = console_box.GetNumberOfLines()
 
-        print("Total Lines: ", total_lines)
         end_position = 0
 
         for line in range(total_lines):
-            print("Line No: ", line)
-
             # appears to need 2 characters for a line break in terms
             # of position
             line_length = console_box.GetLineLength(line) + 2
-
-            print("Line Length: ", line_length)
             end_position += line_length
-        
-        print(end_position)
+
         console_box.Remove(0, end_position)
