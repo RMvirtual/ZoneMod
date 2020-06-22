@@ -25,7 +25,7 @@ class GUI():
         self.__frame = wx.Frame(
             None, 
             size = (1000, 560),
-            title = "zoneMod")
+            title = "ZoneMod")
 
         self.__frame.SetBackgroundColour("GREY")
 

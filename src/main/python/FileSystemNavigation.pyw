@@ -23,14 +23,14 @@ class FileSystemNavigation():
             print(folder)
             directory_path += folder + "\\"
 
-            if folder == "zoneMod":
+            if folder == "ZoneMod":
                 break
         
         return directory_path
 
     def get_resources_directory(self):
         """Returns the path of the resources folder that resides in
-        the src/main directory of the zoneMod directory."""
+        the src/main directory of the ZoneMod directory."""
 
         return self.get_directory_path() + "src\\main\\resources\\"
     
