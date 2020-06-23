@@ -15,7 +15,8 @@ class GUI():
         self.__mode = None
         self.__current_zone_model = None
         self.__current_zone_model_postcodes = None
-        self.__master_area_code = None
+        self.__postcode_overwrites_tracker = []
+        self.__master_area_code = []
         self.__tariff_type = "UK Only"
 
         self.__create_widgets()
@@ -219,6 +220,7 @@ class GUI():
                 self.__current_zone_model_postcodes \
                     = zone_model.get_all_postcodes()
                 self.change_mode("create zone model")
+                self.create_postcode_overwrites_tracker()
 
         # amend zone model button.
         elif event.GetEventObject() == self.__amend_zone_model_button:
@@ -592,7 +594,11 @@ class GUI():
                     
                     if (current_district_number >= start_district_number and
                             current_district_number <= end_district_number):
+                        self.check_postcode_overwrite_error(
+                            postcode.get_full_postcode(), operation_type)
                         postcode.amend_zone(new_zone)
+
+
                         
                         self.write_console_output(postcode.get_full_postcode()
                         + ": " + postcode.get_zone())
@@ -610,6 +616,8 @@ class GUI():
                         postcode.get_district_number())
                     
                     if current_district_number >= start_district_number:
+                        self.check_postcode_overwrite_error(
+                            postcode.get_full_postcode(), operation_type)
                         postcode.amend_zone(new_zone)
 
                         self.write_console_output(postcode.get_full_postcode()
@@ -628,6 +636,8 @@ class GUI():
                         postcode.get_district_number())
                     
                     if current_district_number == district_number:
+                        self.check_postcode_overwrite_error(
+                            postcode.get_full_postcode(), operation_type)
                         postcode.amend_zone(new_zone)
 
                         self.write_console_output(postcode.get_full_postcode()
@@ -639,6 +649,8 @@ class GUI():
                 current_area_code = postcode.get_area_code()
 
                 if current_area_code == area_code.upper():
+                    self.check_postcode_overwrite_error(
+                            postcode.get_full_postcode(), operation_type)
                     postcode.amend_zone(new_zone)
                     
                     self.write_console_output(
@@ -664,6 +676,91 @@ class GUI():
         zm_name_input_box.Destroy()
 
         return zone_model
+
+    def create_postcode_overwrites_tracker(self):
+        """Create a list of the postcodes in a zone model and how many
+        times a postcode has been overwritten on either an area or
+        district specific level.
+        
+        The 0th index is the postcode, the 1st index is a boolean value
+        denoting whether it has been amended before on an area level,
+        and the 2nd index is whether it has been overwritten on a
+        district-specific level."""
+
+        zone_model = self.get_current_zone_model()
+        postcodes = zone_model.get_all_postcodes()
+        postcode_overwrites = []
+
+        for postcode in postcodes:
+            full_postcode = postcode.get_full_postcode()
+            self.set_postcode_overwrites_tracker([full_postcode, False, False])
+
+    def check_postcode_overwrite_error(self, postcode, operation_type):
+        """Checks if there is an error on the tariff where sales have
+        duplicated the zone on the tariff.
+
+        This would be in instances where it has been overwritten on an
+        area level twice in a row, or overwritten on a district level
+        twice in a row. Or even overwritten on a district level and
+        then an area level.
+
+        Overwriting on an an area level and then a district level would
+        be fine."""
+
+        postcode_overwrites = self.index_postcode_overwrites(postcode)
+
+        area_overwritten = postcode_overwrites[1]
+        district_overwritten = postcode_overwrites[2]
+
+        district_operation_types = (
+            ["range-between", "range_after", "specific"])
+        
+        area_operation_type = "all"
+        
+        # if the postcode zone has been overwritten at an area level
+        # once before.
+        if operation_type == area_operation_type:
+            if area_overwritten or district_overwritten:
+                zone_model = self.get_current_zone_model()
+                postcode_to_test = zone_model.get_postcode_by_string(postcode)
+                assigned_zone = postcode_to_test.get_zone()
+
+                self.write_console_output(postcode + " already appears in "
+                    + assigned_zone)
+            
+            else:
+                area_overwritten = True
+                postcode_overwrites[1] = True
+        
+        elif operation_type in district_operation_types:
+            if district_overwritten:
+                zone_model = self.get_current_zone_model()
+                postcode_to_test = zone_model.get_postcode_by_string(postcode)
+                assigned_zone = postcode_to_test.get_zone()   
+
+                self.write_console_output(postcode + " already appears in "
+                    + assigned_zone)
+        
+            else:
+                district_overwritten = True
+                postcode_overwrites[2] = True
+
+    def get_postcode_overwrites_tracker(self):
+        return self.__postcode_overwrites_tracker
+    
+    def set_postcode_overwrites_tracker(self, postcode_overwrite_set):
+        self.__postcode_overwrites_tracker.append(postcode_overwrite_set)
+
+    def index_postcode_overwrites(self, postcode_to_check):
+        """Returns the postcode overwrite sublist against a postcode
+        string that matches."""
+        postcode_overwrites = self.get_postcode_overwrites_tracker()
+
+        for postcode in postcode_overwrites:
+            full_postcode = postcode[0]
+
+            if full_postcode == postcode_to_check:
+                return postcode
 
     def check_duplicate_zone_models(self):
         """Checks for any duplicate zone models the user has already
@@ -707,16 +804,8 @@ class GUI():
                                 if full_postcode == postcode_to_test:
                                     if zone == zone_to_test:
                                         postcodes_to_check.remove(postcode)
-                
-                else:
-                    self.write_console_output("Difference in amount of "
-                    + "postcodes between current zone model and "
-                    + item)
 
-                if postcodes_to_check:
-                    self.write_console_output(item + " does not match.")
-
-                else:
+                if not postcodes_to_check:
                     self.write_console_output(item + " matches.")
 
     def get_csv_line_length(self, csv_file_location):
