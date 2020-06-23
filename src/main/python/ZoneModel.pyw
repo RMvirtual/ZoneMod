@@ -82,11 +82,8 @@ class ZoneModel():
         for postcode in self.__postcodes:        
             if (postcode.get_full_postcode().upper()
                     == postcode_string.upper()):
-                print("Match Found: " + postcode.get_full_postcode())
                 
                 return postcode
-        
-        print("No match found.")
         
         return None
     
