@@ -8,7 +8,7 @@ class ZoneModel():
     def __init__(self, name, tariff_type):
         """ Constructor method. """
 
-        self.__name = name.upper()
+        self.__name = name.upper()[0:10]
         self.__postcodes = []
         self.initialise_postcodes(tariff_type)
     
@@ -110,5 +110,27 @@ class ZoneModel():
                 # csvwriter needs a list object to work so creating
                 # a list even though only one row.
                 row = [postcode.get_full_postcode(), postcode.get_zone()]
+                
+                csv_writer.writerow(row)
+        
+    def export_fcl_csv(self):
+        """ Saves/overwrites a csv file of the zone model in the format FCL
+        requires for upload."""
+
+        file_system_navigation = FileSystemNavigation()
+        fcl_csv_directory = (
+            file_system_navigation.get_fcl_csv_directory())
+
+        with open(fcl_csv_directory + self.get_name() + ".csv",
+                "w", newline="") as csv_file:
+            csv_writer = csv.writer(csv_file, delimiter = ",")
+            postcodes = self.get_all_postcodes()
+
+            for postcode in postcodes:
+                # csvwriter needs a list object to work so creating
+                # a list even though only one row.
+                row = (
+                    ["04", self.get_name(), "GB", postcode.get_zone(),
+                    postcode.get_full_postcode()])
                 
                 csv_writer.writerow(row)

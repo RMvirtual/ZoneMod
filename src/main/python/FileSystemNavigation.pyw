@@ -48,3 +48,9 @@ class FileSystemNavigation():
         directory."""
 
         return self.get_resources_directory() + "zonemodels\\"
+    
+    def get_fcl_csv_directory(self):
+        """Returns the path of the postcodes subfolder in the resources
+        directory."""
+
+        return self.get_resources_directory() + "fcl_csv\\"

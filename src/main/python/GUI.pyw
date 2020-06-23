@@ -226,6 +226,11 @@ class GUI():
         elif event.GetEventObject() == self.__export_csv_button:
             print("Export CSV button pressed")
 
+            self.write_console_output("Exporting FCL CSV.")
+            zone_model = self.get_current_zone_model()
+            zone_model.export_fcl_csv()
+            self.write_console_output("CSV exported.")
+
         # import zone model csv button.
         elif event.GetEventObject() == self.__import_csv_button:
             print("Import CSV button pressed")
