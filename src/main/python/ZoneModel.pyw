@@ -105,7 +105,7 @@ class ZoneModel():
             file_system_navigation.get_zone_models_directory())
 
         with open(zone_models_directory + self.get_name() + ".csv",
-                "w", newline='') as csv_file:
+                "w", newline="") as csv_file:
             csv_writer = csv.writer(csv_file, delimiter = ",")
             postcodes = self.get_all_postcodes()
 

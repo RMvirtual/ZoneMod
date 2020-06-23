@@ -214,6 +214,7 @@ class GUI():
             zone_model = self.create_zone_model()
 
             if zone_model:
+                self.clear_console_output()
                 self.__current_zone_model = zone_model
                 self.__current_zone_model_postcodes \
                     = zone_model.get_all_postcodes()
@@ -677,36 +678,55 @@ class GUI():
             file_system_navigation.get_directory_items(zone_models_directory))
 
         current_zone_model = self.get_current_zone_model()
+        current_zone_model_name = current_zone_model.get_name() + ".csv"
 
         for item in zone_models_directory_items:
-            if item.endswith(".csv"):
-                print(item)
+            if item.endswith(".csv") and item != current_zone_model_name:
                 postcodes_to_check = copy.deepcopy(
                     current_zone_model.get_all_postcodes())
 
-                with open(zone_models_directory + item,
-                        newline="") as zone_model_csv:
-                    csv_reader = csv.reader(zone_model_csv, delimiter = ",")
+                # check length of the csv file against the amount of 
+                # postcodes required to check.
+                csv_line_length = self.get_csv_line_length(
+                    zone_models_directory + item)
 
-                    for row in csv_reader:
-                        postcode_to_test = row[0]
-                        zone_to_test = row[1]
+                if csv_line_length == len(postcodes_to_check):
+                    with open(zone_models_directory + item,
+                            newline="") as zone_model_csv:
+                        csv_reader = csv.reader(zone_model_csv, 
+                            delimiter = ",")
 
-                        for postcode in postcodes_to_check:
-                            full_postcode = postcode.get_full_postcode()
-                            zone = postcode.get_zone()
+                        for row in csv_reader:
+                            postcode_to_test = row[0]
+                            zone_to_test = row[1]
 
-                            if full_postcode == postcode_to_test:
-                                if zone == zone_to_test:
-                                    postcodes_to_check.remove(postcode)
+                            for postcode in postcodes_to_check:
+                                full_postcode = postcode.get_full_postcode()
+                                zone = postcode.get_zone()
 
-            if postcodes_to_check:
-                self.write_console_output("\n" + item + " does not match.")
+                                if full_postcode == postcode_to_test:
+                                    if zone == zone_to_test:
+                                        postcodes_to_check.remove(postcode)
                 
-                for postcode in postcodes_to_check:
-                    self.write_console_output(postcode.get_full_postcode() + " " + postcode.get_zone())
-            else:
-                self.write_console_output("\n" + item + " matches.")
+                else:
+                    self.write_console_output("Difference in amount of "
+                    + "postcodes between current zone model and "
+                    + item)
+
+                if postcodes_to_check:
+                    self.write_console_output(item + " does not match.")
+
+                else:
+                    self.write_console_output(item + " matches.")
+
+    def get_csv_line_length(self, csv_file_location):
+        """Returns the amount of rows found in a CSV file."""
+
+        with open(csv_file_location, newline="") as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter = ",")
+            row_amount = len(list(csv_reader))
+
+            return row_amount
 
     def write_console_output(self, text, newline = True):
         """Writes text to the console output screen of the GUI."""
