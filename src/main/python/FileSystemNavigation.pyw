@@ -24,7 +24,6 @@ class FileSystemNavigation():
         directory_path = ""
 
         for folder in directory_structure:
-            print(folder)
             directory_path += folder + "\\"
 
             if folder == "ZoneMod":

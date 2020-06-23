@@ -204,7 +204,7 @@ class GUI():
             print("Save button pressed")
 
             self.__current_zone_model.save_zone_model()
-            self.check_zone_model_gaps()
+            # self.check_zone_model_gaps()
             self.check_duplicate_zone_models()
 
         # create zone model button.
@@ -555,7 +555,7 @@ class GUI():
 
         delimited_user_input_data = user_input.split(",")
 
-        self.write_console_output("Split into:\n")
+        self.write_console_output("Split into:")
 
         # remove empty items.
         for item in delimited_user_input_data:
@@ -635,10 +635,13 @@ class GUI():
         # amend all postcodes in one area.
         elif operation_type == "all":
             for postcode in postcodes:
-                if postcode.get_area_code() == area_code.upper():
+                current_area_code = postcode.get_area_code()
+
+                if current_area_code == area_code.upper():
+                    postcode.amend_zone(new_zone)
+                    
                     self.write_console_output(
                         postcode.get_full_postcode() + ": " + new_zone)
-                    postcode.amend_zone(new_zone)
 
     def create_zone_model(self):
         """Creates a new zone model and prepares the user for data
@@ -669,7 +672,7 @@ class GUI():
 
         zone_models_directory = (
             file_system_navigation.get_zone_models_directory())
-        
+
         zone_models_directory_items = (
             file_system_navigation.get_directory_items(zone_models_directory))
 
@@ -677,6 +680,7 @@ class GUI():
 
         for item in zone_models_directory_items:
             if item.endswith(".csv"):
+                print(item)
                 postcodes_to_check = copy.deepcopy(
                     current_zone_model.get_all_postcodes())
 
@@ -685,7 +689,6 @@ class GUI():
                     csv_reader = csv.reader(zone_model_csv, delimiter = ",")
 
                     for row in csv_reader:
-
                         postcode_to_test = row[0]
                         zone_to_test = row[1]
 
@@ -694,12 +697,14 @@ class GUI():
                             zone = postcode.get_zone()
 
                             if full_postcode == postcode_to_test:
-                                if zone == zone_to_test:                                
+                                if zone == zone_to_test:
                                     postcodes_to_check.remove(postcode)
 
             if postcodes_to_check:
                 self.write_console_output("\n" + item + " does not match.")
-            
+                
+                for postcode in postcodes_to_check:
+                    self.write_console_output(postcode.get_full_postcode() + " " + postcode.get_zone())
             else:
                 self.write_console_output("\n" + item + " matches.")
 
