@@ -526,6 +526,7 @@ class GUI():
         zone_model = self.get_current_zone_model()
         postcodes = zone_model.get_all_postcodes()
         new_zone = self.get_zone_input()
+        success_check = False
 
         # all postcodes between a specific district range (ie L1-L20).
         if operation_type == "range-between":
@@ -546,8 +547,14 @@ class GUI():
                             current_district_number <= end_district_number):
                         self.check_postcode_overwrite_error(
                             postcode.get_full_postcode(), operation_type)
+                        
+                        success_check = True
                         postcode.amend_zone(new_zone)
-        
+
+            if not success_check:
+                self.write_console_output("Could not complete operation for "
+                    + area_code + district_numbers)
+
         # all postcodes after a specific district (ie L10+).
         elif operation_type == "range-after":
             district_range_string = re.sub("[a-zA-Z]+", "", district_numbers)
@@ -563,7 +570,13 @@ class GUI():
                     if current_district_number >= start_district_number:
                         self.check_postcode_overwrite_error(
                             postcode.get_full_postcode(), operation_type)
+                        
+                        success_check = True
                         postcode.amend_zone(new_zone)
+            
+            if not success_check:
+                self.write_console_output("Could not complete operation for "
+                    + area_code + district_numbers)
 
         # specific postcodes to be amended (ie L10 only).
         elif operation_type == "specific":
@@ -580,7 +593,13 @@ class GUI():
                     if current_district_number == district_number:
                         self.check_postcode_overwrite_error(
                             postcode.get_full_postcode(), operation_type)
+                        
+                        success_check = True
                         postcode.amend_zone(new_zone)
+
+            if not success_check:
+                self.write_console_output("Could not complete operation for "
+                    + area_code + district_numbers)
 
         # amend all postcodes in one area.
         elif operation_type == "all":
@@ -590,7 +609,13 @@ class GUI():
                 if current_area_code == area_code.upper():
                     self.check_postcode_overwrite_error(
                             postcode.get_full_postcode(), operation_type)
+                    
+                    success_check = True
                     postcode.amend_zone(new_zone)
+            
+            if not success_check:
+                self.write_console_output("Could not complete operation for "
+                    + area_code)
 
     def create_zone_model(self):
         """Creates a new zone model and prepares the user for data
