@@ -653,6 +653,8 @@ class GUI():
         and the 2nd index is whether it has been overwritten on a
         district-specific level."""
 
+        self.__postcode_overwrites_tracker = []
+
         zone_model = self.get_current_zone_model()
         postcodes = zone_model.get_all_postcodes()
         postcode_overwrites = []
