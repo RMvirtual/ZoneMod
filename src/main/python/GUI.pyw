@@ -203,7 +203,8 @@ class GUI():
             self.write_console_output("Saving...")
             self.__current_zone_model.save_zone_model()
             self.check_zone_model_gaps()
-            self.check_duplicate_zone_models()
+            # disabled the duplicate_zone_model check for now.
+            # self.check_duplicate_zone_models()
             self.write_console_output("Zone Model Saved.")
 
         # create zone model button.
