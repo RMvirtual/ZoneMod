@@ -11,7 +11,7 @@ class MySQLHandler():
         self.create_cursor()
         self.show_databases()
         self.create_database_connection("zonemod")
-        self.create_table("zone_models")
+        
 
     def create_mysql_connection(self):
         self.connection = mysql.connector.connect(
@@ -44,10 +44,11 @@ class MySQLHandler():
         """Creates a new table in a database."""
 
         self.execute_sql_statement("CREATE TABLE " + table_name + " (" 
-            + "zone_model name VARCHAR(10), "
+            + "zone_model_name VARCHAR(10), "
             + "area_code VARCHAR(255), "
             + "district_number VARCHAR(255), "
-            + "zone VARCHAR(10)")
+            + "zone VARCHAR(10))"
+        )
 
     def show_databases(self):
         """Displays all the databases in the system."""
@@ -65,6 +66,8 @@ class MySQLHandler():
     def get_cursor(self):
         """Returns the cursor responsible for providing mySQL
         commands."""
+
+        self.create_cursor()
         
         return self.cursor
     
