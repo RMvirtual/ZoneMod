@@ -25,7 +25,7 @@ class GUI():
     def __create_widgets(self):
         """Creates the widgets required for the application."""
 
-        # frame for entire window.
+        # Frame for entire window.
         self.__frame = wx.Frame(
             None, 
             size = (1000, 560),
@@ -33,19 +33,19 @@ class GUI():
 
         self.__frame.SetBackgroundColour("GREY")
 
-        # text_console display panel for upper half of the application.
+        # Text_console display panel for upper half of the application.
         self.__text_console_panel = wx.Panel(
             self.__frame,
             size = (965, 300),
             pos = (10.0, 10.0))
 
-        # text console display.
+        # Text console display.
         self.__text_console_output_box = wx.TextCtrl(
             self.__text_console_panel,
             size = (965, 300),
             style = wx.TE_MULTILINE | wx.TE_READONLY | wx.BORDER_SIMPLE)
 
-        # user input panel for bottom half of the application.
+        # User input panel for bottom half of the application.
         self.__user_input_panel = wx.Panel(
             self.__frame,
             size = (965, 195),
@@ -53,7 +53,7 @@ class GUI():
 
         self.__user_input_panel.SetBackgroundColour("GREY")
 
-        # text box for user to input data.
+        # Text box for user to input data.
         self.__text_console_input_box = wx.TextCtrl(
             self.__user_input_panel,
             value = "trololololol",
@@ -61,7 +61,7 @@ class GUI():
             size = (750, 160),
             pos = (0, 0))
 
-        # submit button.
+        # Submit button.
         self.__submit_button = wx.Button(
             self.__user_input_panel,
             label = "Submit",
@@ -71,7 +71,7 @@ class GUI():
         self.__frame.Bind(wx.EVT_BUTTON, self.button_click,
             self.__submit_button)
 
-        # skip button.
+        # Skip button.
         self.__skip_button = wx.Button(
             self.__user_input_panel,
             label = "Skip",
@@ -81,7 +81,7 @@ class GUI():
         self.__frame.Bind(wx.EVT_BUTTON, self.button_click,
             self.__skip_button)
 
-        # save button.
+        # Save button.
         self.__save_button = wx.Button(
             self.__user_input_panel,
             label = "Save",
@@ -91,7 +91,7 @@ class GUI():
         self.__frame.Bind(wx.EVT_BUTTON, self.button_click,
             self.__save_button)
 
-        # exit button.
+        # Exit button.
         self.__exit_button = wx.Button(
             self.__user_input_panel,
             label = "Exit",
@@ -101,7 +101,7 @@ class GUI():
         self.__frame.Bind(wx.EVT_BUTTON, self.button_click,
             self.__exit_button)
 
-        # zone name label.
+        # Zone name label.
         self.__zone_label = wx.StaticText(
             self.__user_input_panel,
             label = "Zone Name:",
@@ -111,13 +111,13 @@ class GUI():
 
         self.__zone_label.SetBackgroundColour("White")
 
-        # zone name text box to input zone name.
+        # Zone name text box to input zone name.
         self.__zone_input_box = wx.TextCtrl(
             self.__user_input_panel,
             pos = (832 , 0),
             size = (100, 20))
 
-        # tariff type label to indicate what the dropdown box is for.
+        # Tariff type label to indicate what the dropdown box is for.
         self.__tariff_type_label = wx.StaticText(
             self.__user_input_panel,
             label = "Tariff Type:",
@@ -127,7 +127,7 @@ class GUI():
 
         self.__tariff_type_label.SetBackgroundColour("White")       
 
-        # tariff type dropdown box menu.
+        # Tariff type dropdown box menu.
         self.__tariff_type_dropdown_menu = wx.ComboBox(
             self.__user_input_panel,
             pos = (832 , 25),
@@ -139,7 +139,7 @@ class GUI():
         self.__frame.Bind(wx.EVT_COMBOBOX, self.tariff_type_change,
             self.__tariff_type_dropdown_menu)
 
-        # create zone model button.
+        # Create zone model button.
         self.__create_zone_model_button = wx.Button(
             self.__user_input_panel,
             label = "Create Zone Model",
@@ -149,7 +149,7 @@ class GUI():
         self.__frame.Bind(wx.EVT_BUTTON, self.button_click,
             self.__create_zone_model_button)
         
-        # amend zone model button.
+        # Amend zone model button.
         self.__amend_zone_model_button = wx.Button(
             self.__user_input_panel,
             label = "Amend Zone Model",
@@ -159,7 +159,7 @@ class GUI():
         self.__frame.Bind(wx.EVT_BUTTON, self.button_click,
             self.__amend_zone_model_button)
 
-        # export zone model csv button.
+        # Export zone model csv button.
         self.__export_csv_button = wx.Button(
             self.__user_input_panel,
             label = "Export Zone Model CSV",
@@ -169,7 +169,7 @@ class GUI():
         self.__frame.Bind(wx.EVT_BUTTON, self.button_click,
             self.__export_csv_button)
 
-        # import zone model csv button.
+        # Import zone model csv button.
         self.__import_csv_button = wx.Button(
             self.__user_input_panel,
             label = "Import Zone Model CSV",
@@ -185,20 +185,20 @@ class GUI():
         """Defines the program's behaviour when the GUI's buttons are
         pressed."""
 
-        # submit button.
+        # Submit button.
         if event.GetEventObject() == self.__submit_button:
             user_input = self.get_user_input()
             self.submit(user_input)
 
-        # skip button.
+        # Skip button.
         elif event.GetEventObject() == self.__skip_button:
             print("Skip button pressed")
 
-        # exit button.
+        # Exit button.
         elif event.GetEventObject() == self.__exit_button:
             print("Exit button pressed")
 
-        # finished button.
+        # Finished button.
         elif event.GetEventObject() == self.__save_button:
             self.write_console_output("Saving...")
             self.__current_zone_model.save_zone_model()
@@ -207,32 +207,32 @@ class GUI():
             # self.check_duplicate_zone_models()
             self.write_console_output("Zone Model Saved.")
 
-        # create zone model button.
+        # Create zone model button.
         elif event.GetEventObject() == self.__create_zone_model_button:
             zone_model = self.create_zone_model()
 
             if zone_model:
                 self.clear_console_output()
                 self.__current_zone_model = zone_model
+                
                 self.__current_zone_model_postcodes \
                     = zone_model.get_all_postcodes()
+
                 self.change_mode("create zone model")
                 self.create_postcode_overwrites_tracker()
 
-        # amend zone model button.
+        # Amend zone model button.
         elif event.GetEventObject() == self.__amend_zone_model_button:
             print("Amend Zone Model button pressed")
 
-        # export zone model csv button.
+        # Export zone model csv button.
         elif event.GetEventObject() == self.__export_csv_button:
-            print("Export CSV button pressed")
-
             self.write_console_output("Exporting FCL CSV.")
             zone_model = self.get_current_zone_model()
             zone_model.export_fcl_csv()
             self.write_console_output("CSV exported.")
 
-        # import zone model csv button.
+        # Import zone model csv button.
         elif event.GetEventObject() == self.__import_csv_button:
             print("Import CSV button pressed")
     
@@ -253,7 +253,7 @@ class GUI():
         expected to complete."""
 
         return self.__mode
-    
+
     def change_mode(self, new_mode):
         """Changes the current mode/operation that the user is
         expected to complete. Valid options are None, "create zone
@@ -393,41 +393,41 @@ class GUI():
             district_numbers = original_input
             operation_type = "numerical only"            
 
-        # if the area code is 1 character, but contains an open bracket
+        # If the area code is 1 character, but contains an open bracket
         # indicating the start of a subset of postcodes.
         elif formatted_input[0:2] == "x(" and formatted_input[-1] != ")":
             area_code = original_input[0]
             district_numbers = original_input[2:]
             operation_type = "start of subset"
 
-        # if it looks like the start of a subset, but only has one
+        # If it looks like the start of a subset, but only has one
         # set of district numbers in the entire subset.
         elif formatted_input[0:2] == "x(" and formatted_input[-1] == ")":
             area_code = original_input[0]
             district_numbers = original_input[2:-1]
             operation_type = "start of subset"
         
-        # if the area code is 2 characters, but contains an open
+        # If the area code is 2 characters, but contains an open
         # bracket indicating the start of a subset of postcodes.
         elif formatted_input[0:3] == "xx(" and formatted_input[-1] != ")":
             area_code = original_input[0:2]
             district_numbers = original_input[3:]
             operation_type = "start of subset"
         
-        # if it looks like the start of a subset, but only has one set
+        # If it looks like the start of a subset, but only has one set
         # of district numbers in the entire subset.
         elif formatted_input[0:3] == "xx(" and formatted_input[-1] == ")":
             area_code = original_input[0:2]
             district_numbers = original_input[3:-1]
             operation_type = "start of subset"
 
-        # end of a subset
+        # End of a subset
         elif formatted_input[-1] == ")":
             area_code = None
             district_numbers = original_input[:-1]
             operation_type = "end of subset"
 
-        # if is a postcode range (see range characters list but as
+        # If is a postcode range (see range characters list but as
         # an example L1-L12).
         elif formatted_input in range_between_characters:
             operation_type = "range-between"
@@ -440,7 +440,7 @@ class GUI():
                 area_code = original_input[0:2]
                 district_numbers = original_input[2:]
         
-        # if is a postcode range of all codes after a certain district
+        # If is a postcode range of all codes after a certain district
         # (ie L20+ or L1+).
         elif formatted_input in range_after_characters:
             operation_type = "range-after"
@@ -461,7 +461,7 @@ class GUI():
                 area_code = original_input[0:2]
                 district_numbers = original_input[2:4]
 
-        # if is non-district specific covering the entire area of
+        # If is non-district specific covering the entire area of
         # a one or two letter postcode (ie L or WN postcode).
         elif formatted_input == "x" or formatted_input == "xx":
             area_code = original_input
@@ -469,28 +469,28 @@ class GUI():
             operation_type = "all"
 
         elif formatted_input in specific_characters:
-            # if is a district specific postcode consisting of 1 alphabet
+            # If is a district specific postcode consisting of 1 alphabet
             # character and 1 numerical (ie L1 postcode).
             if formatted_input == "x0":
                 area_code = original_input[0]
                 district_numbers = original_input[1]
                 operation_type = "specific"
 
-            # if the area code is 1 character and the district number is
+            # If the area code is 1 character and the district number is
             # 2 digits (ie L20 postocode).
             elif formatted_input == "x00":
                 area_code = original_input[0]
                 district_numbers = original_input[1:3]
                 operation_type = "specific"
 
-            # if the area code is 2 characters and the district number
+            # If the area code is 2 characters and the district number
             # is 1 digit (ie WN6 postcode).
             elif formatted_input == "xx0":
                 area_code = original_input[0:2]
                 district_numbers = original_input[2]
                 operation_type = "specific"
 
-            # if the area code is 2 characters and the district number is
+            # If the area code is 2 characters and the district number is
             # 2 digits (ie LA20 postcode) or 1 digit and 1 alphabetic
             # character (ie London postcodes such as EC2M or WC2H).
             elif formatted_input == "xx00" or formatted_input == "xx0x":
@@ -509,14 +509,11 @@ class GUI():
 
     def delimit_input(self, user_input):
         user_input = "".join(user_input.replace(".",",").strip().split())
-
         self.write_console_output("Processing " + user_input + "\n")
-
         delimited_user_input_data = user_input.split(",")
-
         self.write_console_output("Split into:")
 
-        # remove empty items.
+        # Remove empty items.
         for item in delimited_user_input_data:
             if item == "":
                 self.write_console_output("Blank Item removed")
@@ -529,12 +526,14 @@ class GUI():
 
     def amend_postcode_zone(self, area_code, district_numbers,
             operation_type):
+        """Amends the zone associated with a postcode."""
+
         zone_model = self.get_current_zone_model()
         postcodes = zone_model.get_all_postcodes()
         new_zone = self.get_zone_input()
         success_check = False
 
-        # all postcodes between a specific district range (ie L1-L20).
+        # All postcodes between a specific district range (ie L1-L20).
         if operation_type == "range-between":
             district_range_string = re.sub("[a-zA-Z]", "", district_numbers)
             district_range = district_range_string.split("-")
@@ -561,7 +560,7 @@ class GUI():
                 self.write_console_output("Could not complete operation for "
                     + area_code + district_numbers)
 
-        # all postcodes after a specific district (ie L10+).
+        # All postcodes after a specific district (ie L10+).
         elif operation_type == "range-after":
             district_range_string = re.sub("[a-zA-Z]+", "", district_numbers)
             start_district_number = int(district_range_string)
@@ -584,7 +583,7 @@ class GUI():
                 self.write_console_output("Could not complete operation for "
                     + area_code + district_numbers)
 
-        # specific postcodes to be amended (ie L10 only).
+        # Specific postcodes to be amended (ie L10 only).
         elif operation_type == "specific":
             district_range_string = re.sub("[a-zA-Z]", "", district_numbers)
             district_number = int(district_range_string)
@@ -607,7 +606,7 @@ class GUI():
                 self.write_console_output("Could not complete operation for "
                     + area_code + district_numbers)
 
-        # amend all postcodes in one area.
+        # Amend all postcodes in one area.
         elif operation_type == "all":
             for postcode in postcodes:
                 current_area_code = postcode.get_area_code()
@@ -686,7 +685,7 @@ class GUI():
         
         area_operation_type = "all"
         
-        # if the postcode zone has been overwritten at an area level
+        # If the postcode zone has been overwritten at an area level
         # once before.
         if operation_type == area_operation_type:
             if area_overwritten or district_overwritten:
@@ -723,6 +722,7 @@ class GUI():
     def index_postcode_overwrites(self, postcode_to_check):
         """Returns the postcode overwrite sublist against a postcode
         string that matches."""
+
         postcode_overwrites = self.get_postcode_overwrites_tracker()
 
         for postcode in postcode_overwrites:
@@ -751,16 +751,18 @@ class GUI():
                 postcodes_to_check = copy.deepcopy(
                     current_zone_model.get_all_postcodes())
 
-                # check length of the csv file against the amount of 
+                # Check length of the csv file against the amount of 
                 # postcodes required to check.
                 csv_line_length = self.get_csv_line_length(
                     zone_models_directory + item)
 
                 if csv_line_length == len(postcodes_to_check):
-                    with open(zone_models_directory + item,
-                            newline="") as zone_model_csv:
-                        csv_reader = csv.reader(zone_model_csv, 
-                            delimiter = ",")
+                    zone_model_csv = open(
+                        zone_models_directory + item, newline = "")
+
+                    with zone_model_csv:
+                        csv_reader = csv.reader(
+                            zone_model_csv,delimiter = ",")
 
                         for row in csv_reader:
                             postcode_to_test = row[0]

@@ -3,20 +3,20 @@ from Postcode import Postcode
 from FileSystemNavigation import FileSystemNavigation
 
 class ZoneModel():
-    """ Models a collection of postcodes and corresponding zones. """
+    """Models a collection of postcodes and corresponding zones."""
     
     def __init__(self, name, tariff_type):
-        """ Constructor method. """
+        """Constructor method."""
 
         self.__name = name.upper()[0:10]
         self.__postcodes = []
         self.initialise_postcodes(tariff_type)
     
     def initialise_postcodes(self, tariff_type):
-        """ Sets up the postcodes in the zone model so zones can be
+        """Sets up the postcodes in the zone model so zones can be
         added to them later. Uses base csv files to make setting them
         up easier. Differentiates which postcodes are generated based
-        on tariff type"""
+        on tariff type."""
 
         file_system_navigation = FileSystemNavigation()
         
@@ -50,84 +50,84 @@ class ZoneModel():
                     self.__postcodes.append(new_postcode)
 
     def split_apart_postcode(self, postcode):
-        """ Splits apart a full postcode string into area code and
+        """Splits apart a full postcode string into area code and
         district number based on first occurence of a numeric character
         (first occurence only to accomodate EC postcodes which have
-        trailing alphabetic characters in the district number). """
+        trailing alphabetic characters in the district number)."""
 
         for index, character in enumerate(postcode):
             if character.isnumeric():
                 break
-        
+
         area_code = postcode[0:index]
         district_number = postcode[index:]
 
         return area_code, district_number
 
     def get_name(self):
-        """ Returns the name of the zone model. """
+        """Returns the name of the zone model."""
 
         return self.__name
 
     def get_postcode_by_index(self, index):
-        """ Returns a Postcode object from the postcodes list based on
-        the index position within that list. """
+        """Returns a Postcode object from the postcodes list based on
+        the index position within that list."""
 
         return self.__postcodes[index]
     
     def get_postcode_by_string(self, postcode_string):
-        """ Searches for a postcode found within the postcodes list
-        based on its full representation as a string. """
+        """Searches for a postcode found within the postcodes list
+        based on its full representation as a string."""
 
-        for postcode in self.__postcodes:        
-            if (postcode.get_full_postcode().upper()
-                    == postcode_string.upper()):
-                
+        for postcode in self.__postcodes:
+            full_postcode = postcode.get_full_postcode.upper()
+
+            if full_postcode == postcode_string.upper():
                 return postcode
         
         return None
     
     def get_all_postcodes(self):
-        """ Returns the full list of postcodes contained in this
-        zone model. """
+        """Returns the full list of postcodes contained in this
+        zone model."""
 
         return self.__postcodes
     
     def save_zone_model(self):
-        """ Saves/overwrites a csv file of the zone model's current
-        state. """
+        """Saves/overwrites a csv file of the zone model's current
+        state."""
 
-        file_system_navigation = FileSystemNavigation()
-        zone_models_directory = (
-            file_system_navigation.get_zone_models_directory())
+        file_system_nav = FileSystemNavigation()
+        zone_models_directory = file_system_nav.get_zone_models_directory()
 
-        with open(zone_models_directory + self.get_name() + ".csv",
-                "w", newline="") as csv_file:
+        csv_path = zone_models_directory + self.get_name() + ".csv"
+        
+        with open(csv_path, "w", newline="") as csv_file:
             csv_writer = csv.writer(csv_file, delimiter = ",")
             postcodes = self.get_all_postcodes()
 
             for postcode in postcodes:
-                # csvwriter needs a list object to work so creating
+                # CsvWriter needs a list object to work so creating
                 # a list even though only one row.
                 row = [postcode.get_full_postcode(), postcode.get_zone()]
-                
+
                 csv_writer.writerow(row)
-        
+
     def export_fcl_csv(self):
-        """ Saves/overwrites a csv file of the zone model in the format FCL
-        requires for upload."""
+        """Saves/overwrites a csv file of the zone model in the format
+        FCL requires for upload."""
 
-        file_system_navigation = FileSystemNavigation()
-        fcl_csv_directory = (
-            file_system_navigation.get_fcl_csv_directory())
+        file_sys_nav = FileSystemNavigation()
+        fcl_csv_directory = file_sys_nav.get_fcl_csv_directory()
 
-        with open(fcl_csv_directory + self.get_name() + ".csv",
-                "w", newline="") as csv_file:
+        fcl_csv_output_path = fcl_csv_directory + self.get_name() + ".csv" 
+        
+        with open(fcl_csv_output_path, "w", newline="") as csv_file:
             csv_writer = csv.writer(csv_file, delimiter = ",")
             postcodes = self.get_all_postcodes()
 
             for postcode in postcodes:
-                # csvwriter needs a list object to work so creating
+                # CsvWriter needs a list object to work so creating
                 # a list even though only one row.
                 row = (
                     ["04", self.get_name(), "GB", postcode.get_zone(),
